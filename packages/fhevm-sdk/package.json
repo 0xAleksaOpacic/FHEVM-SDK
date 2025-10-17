@@ -1,0 +1,47 @@
+{
+  "name": "@fhevm-sdk",
+  "version": "1.0.0",
+  "description": "Framework-agnostic FHEVM SDK for encrypted smart contracts",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./storage": {
+      "types": "./dist/storage/index.d.ts",
+      "import": "./dist/storage/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@zama-fhe/relayer-sdk": "^0.2.0",
+    "@fhevm/mock-utils": "^0.1.0",
+    "idb": "^8.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.50",
+    "tsup": "^8.0.0",
+    "typescript": "^5.8.2",
+    "vitest": "^2.1.8"
+  },
+  "keywords": [
+    "fhevm",
+    "fhe",
+    "encryption",
+    "zama",
+    "blockchain"
+  ],
+  "license": "BSD-3-Clause-Clear"
+}
+
