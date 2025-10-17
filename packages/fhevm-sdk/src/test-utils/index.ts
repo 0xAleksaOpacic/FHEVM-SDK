@@ -1,0 +1,2 @@
+export { createMockInstance } from './mockInstance';
+

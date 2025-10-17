@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createClient, FhevmClientStatus } from './createClient';
 import { ClientErrorMessages } from '../errors';
+import { sepolia } from '../chains';
 import type { FhevmConfig } from './createClient';
 
 describe('createClient', () => {
@@ -9,7 +10,7 @@ describe('createClient', () => {
   beforeEach(() => {
     config = {
       provider: 'http://localhost:8545',
-      chainId: 31337,
+      chain: sepolia,
     };
   });
 
@@ -24,14 +25,14 @@ describe('createClient', () => {
 
   it('should throw if provider is missing', () => {
     const invalidConfig = { ...config, provider: '' };
-    
+
     expect(() => createClient(invalidConfig as FhevmConfig)).toThrow(ClientErrorMessages.PROVIDER_REQUIRED);
   });
 
-  it('should throw if chainId is invalid', () => {
-    const invalidConfig = { ...config, chainId: undefined as any };
-    
-    expect(() => createClient(invalidConfig)).toThrow(ClientErrorMessages.INVALID_CHAIN_ID);
+  it('should throw if chain is missing', () => {
+    const invalidConfig = { provider: 'http://localhost:8545' };
+
+    expect(() => createClient(invalidConfig as FhevmConfig)).toThrow(ClientErrorMessages.CHAIN_OR_CHAIN_ID_REQUIRED);
   });
 
   it('should transition through initialization states', async () => {

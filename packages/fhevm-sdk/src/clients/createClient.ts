@@ -1,11 +1,22 @@
-import type { Eip1193Provider, FhevmInstance } from '../types';
+import type { Eip1193Provider, FhevmInstance, FhevmChain } from '../types';
 import { FhevmError, ErrorCodes, ClientErrorMessages } from '../errors';
 import { createLogger } from '../utils/logger';
+import { createInstance } from '@zama-fhe/relayer-sdk/web';
+import { validateConfig } from './utils/validateConfig';
 
 export interface FhevmConfig {
+  /**
+   * EIP-1193 provider or RPC URL
+   */
   provider: string | Eip1193Provider;
-  chainId: number;
-  mockChains?: Record<number, string>;
+  /**
+   * FHEVM chain to use (recommended)
+   * Import from '@fhevm-sdk/chains'
+   */
+  chain: FhevmChain;
+  /**
+   * Enable debug logging
+   */
   debug?: boolean;
 }
 
@@ -27,21 +38,9 @@ export interface FhevmClient {
 }
 
 /**
- * Creates an FHEVM client instance
- * 
- * @param config - Client configuration including provider and chainId
- * @returns FHEVM client with initialize, getInstance, and isReady methods
- * 
- * @example
- * ```typescript
- * const client = createClient({
- *   provider: window.ethereum,
- *   chainId: 11155111,
- *   debug: true
- * });
- * 
- * await client.initialize();
- * ```
+ * Creates an FHEVM client instance.
+ * @param config - Client configuration.
+ * @returns Client with initialize, getInstance, isReady, and getStatus.
  */
 export function createClient(config: FhevmConfig): FhevmClient {
   validateConfig(config);
@@ -69,17 +68,22 @@ export function createClient(config: FhevmConfig): FhevmClient {
     
     try {
       status = FhevmClientStatus.LOADING;
-      logger.debug('Initializing FHEVM...');
+
+      const { config: instanceConfig, id: resolvedChainId} = config.chain;
       
-      // TODO: Implement actual initialization
-      // - Load FHEVM SDK (relayer-sdk)
-      // - Detect chain and verify it's supported
-      // - Fetch public keys from KMS
-      // - Create FhevmInstance
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      logger.debug('Initializing FHEVM...', { 
+        chainId: resolvedChainId,
+      });
+
+      instance = await createInstance({
+        ...instanceConfig,
+        network: config.provider,
+      });
+
       status = FhevmClientStatus.READY;
-      logger.debug('FHEVM initialized successfully');
+      logger.debug('FHEVM initialized successfully', {
+        chainId: resolvedChainId,
+      });
       
     } catch (e) {
       status = FhevmClientStatus.ERROR;
@@ -127,34 +131,5 @@ export function createClient(config: FhevmConfig): FhevmClient {
     getInstance,
     isReady,
   };
-}
-
-/**
- * Validates the client configuration
- * 
- * @param config - Configuration to validate
- * @throws {FhevmError} If configuration is invalid
- */
-function validateConfig(config: FhevmConfig): void {
-  if (!config.provider) {
-    throw new FhevmError(
-      ErrorCodes.INVALID_CONFIG,
-      ClientErrorMessages.PROVIDER_REQUIRED
-    );
-  }
-  
-  if (!config.chainId || typeof config.chainId !== 'number') {
-    throw new FhevmError(
-      ErrorCodes.INVALID_CONFIG,
-      ClientErrorMessages.INVALID_CHAIN_ID
-    );
-  }
-  
-  if (config.chainId <= 0) {
-    throw new FhevmError(
-      ErrorCodes.INVALID_CONFIG,
-      ClientErrorMessages.CHAIN_ID_POSITIVE
-    );
-  }
 }
 
