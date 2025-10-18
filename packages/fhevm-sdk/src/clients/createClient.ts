@@ -3,6 +3,7 @@ import { FhevmError, ErrorCodes, ClientErrorMessages } from '../errors';
 import { createLogger } from '../utils/logger';
 import { createInstance } from '@zama-fhe/relayer-sdk/web';
 import { validateConfig } from './utils/validateConfig';
+import { createIndexedDBStorage } from '../storage';
 
 export interface FhevmConfig {
   /**
@@ -49,6 +50,7 @@ export function createClient(config: FhevmConfig): FhevmClient {
   let instance: FhevmInstance | undefined;
   let error: Error | undefined;
   
+  const storage = createIndexedDBStorage();
   const logger = createLogger('FHEVM', config.debug || false);
   
   /**
@@ -69,21 +71,39 @@ export function createClient(config: FhevmConfig): FhevmClient {
     try {
       status = FhevmClientStatus.LOADING;
 
-      const { config: instanceConfig, id: resolvedChainId} = config.chain;
+      const { config: instanceConfig, id: resolvedChainId } = config.chain;
+      const aclAddress = instanceConfig.aclContractAddress;
       
-      logger.debug('Initializing FHEVM...', { 
-        chainId: resolvedChainId,
-      });
+      logger.debug('Initializing FHEVM...', { chainId: resolvedChainId });
 
+      // Try to load cached public key
+      const cached = await storage.getPublicKey(aclAddress);
+      
+      if (cached) {
+        logger.debug('Using cached public key', { publicKeyId: cached.publicKeyId });
+      }
+
+      // Create instance with cached key if available
       instance = await createInstance({
         ...instanceConfig,
         network: config.provider,
+        publicKey: cached ? {
+          data: cached.publicKey,
+          id: cached.publicKeyId,
+        } : undefined,
       });
 
+      // Save to cache if not cached
+      if (!cached) {
+        const current = instance.getPublicKey();
+        if (current) {
+          logger.debug('Caching public key', { publicKeyId: current.publicKeyId });
+          await storage.setPublicKey(aclAddress, current.publicKeyId, current.publicKey);
+        }
+      }
+
       status = FhevmClientStatus.READY;
-      logger.debug('FHEVM initialized successfully', {
-        chainId: resolvedChainId,
-      });
+      logger.debug('FHEVM initialized successfully', { chainId: resolvedChainId });
       
     } catch (e) {
       status = FhevmClientStatus.ERROR;
