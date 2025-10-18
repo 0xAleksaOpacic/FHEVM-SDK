@@ -7,4 +7,4 @@ export { createIndexedDBStorage, createInMemoryStorage } from './storage';
 export type { FhevmClient, FhevmConfig, FhevmStatus } from './clients/createClient';
 export type { Eip1193Provider, FhevmInstance } from './types';
 export type { ErrorCode } from './errors';
-export type { StorageAdapter, CachedPublicData } from './storage';
+export type { StorageAdapter, CachedPublicKey, CachedPublicParams } from './storage';

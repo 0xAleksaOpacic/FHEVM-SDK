@@ -1,11 +1,11 @@
 import { openDB, IDBPDatabase, DBSchema } from 'idb';
-import type { StorageAdapter, CachedPublicData } from '../types';
+import type { StorageAdapter, CachedPublicKey, CachedPublicParams } from '../types';
 import { StorageMessages } from './messages';
 
 interface IndexedDBSchema extends DBSchema {
   publicData: {
     key: string;
-    value: CachedPublicData;
+    value: CachedPublicKey | Record<number, CachedPublicParams>;
   };
 }
 
@@ -45,13 +45,13 @@ export function createIndexedDBStorage(): StorageAdapter {
   }
 
   return {
-    async getPublicKey(aclAddress: string): Promise<CachedPublicData | null> {
+    async getPublicKey(aclAddress: string): Promise<CachedPublicKey | null> {
       const db = await getDB();
       if (!db) return null;
 
       try {
-        const data = await db.get(STORE_NAME, aclAddress);
-        return data || null;
+        const data = await db.get(STORE_NAME, `${aclAddress}:key`);
+        return (data as CachedPublicKey) || null;
       } catch (error) {
         console.warn(`[fhevm-sdk] ${StorageMessages.GET_FAILED}:`, error);
         return null;
@@ -71,7 +71,34 @@ export function createIndexedDBStorage(): StorageAdapter {
           publicKeyId,
           publicKey,
           timestamp: Date.now(),
-        }, aclAddress);
+        }, `${aclAddress}:key`);
+      } catch (error) {
+        console.warn(`[fhevm-sdk] ${StorageMessages.SET_FAILED}:`, error);
+      }
+    },
+
+    async getPublicParams(aclAddress: string): Promise<Record<number, CachedPublicParams> | null> {
+      const db = await getDB();
+      if (!db) return null;
+
+      try {
+        const data = await db.get(STORE_NAME, `${aclAddress}:params`);
+        return (data as Record<number, CachedPublicParams>) || null;
+      } catch (error) {
+        console.warn(`[fhevm-sdk] ${StorageMessages.GET_FAILED}:`, error);
+        return null;
+      }
+    },
+
+    async setPublicParams(
+      aclAddress: string,
+      publicParams: Record<number, CachedPublicParams>
+    ): Promise<void> {
+      const db = await getDB();
+      if (!db) return;
+
+      try {
+        await db.put(STORE_NAME, publicParams, `${aclAddress}:params`);
       } catch (error) {
         console.warn(`[fhevm-sdk] ${StorageMessages.SET_FAILED}:`, error);
       }

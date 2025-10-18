@@ -14,6 +14,10 @@ export async function createMockInstance(): Promise<FhevmInstance> {
       publicKey: new Uint8Array([1, 2, 3]),
       publicKeyId: 'mock-key-id',
     }),
+    getPublicParams: (bits) => ({
+      publicParams: new Uint8Array([4, 5, 6]),
+      publicParamsId: `mock-params-${bits}`,
+    }),
   } as FhevmInstance;
 }
 

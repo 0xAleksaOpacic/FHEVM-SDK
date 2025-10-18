@@ -1,4 +1,4 @@
-import type { StorageAdapter, CachedPublicData } from '../types';
+import type { StorageAdapter, CachedPublicKey, CachedPublicParams } from '../types';
 
 /**
  * Create an in-memory storage adapter for FHEVM public data.
@@ -7,11 +7,12 @@ import type { StorageAdapter, CachedPublicData } from '../types';
  * @returns In-memory storage adapter
  */
 export function createInMemoryStorage(): StorageAdapter {
-  const cache = new Map<string, CachedPublicData>();
+  const keyCache = new Map<string, CachedPublicKey>();
+  const paramsCache = new Map<string, Record<number, CachedPublicParams>>();
 
   return {
-    async getPublicKey(aclAddress: string): Promise<CachedPublicData | null> {
-      return cache.get(aclAddress) || null;
+    async getPublicKey(aclAddress: string): Promise<CachedPublicKey | null> {
+      return keyCache.get(aclAddress) || null;
     },
 
     async setPublicKey(
@@ -19,15 +20,27 @@ export function createInMemoryStorage(): StorageAdapter {
       publicKeyId: string,
       publicKey: Uint8Array
     ): Promise<void> {
-      cache.set(aclAddress, {
+      keyCache.set(aclAddress, {
         publicKeyId,
         publicKey,
         timestamp: Date.now(),
       });
     },
 
+    async getPublicParams(aclAddress: string): Promise<Record<number, CachedPublicParams> | null> {
+      return paramsCache.get(aclAddress) || null;
+    },
+
+    async setPublicParams(
+      aclAddress: string,
+      publicParams: Record<number, CachedPublicParams>
+    ): Promise<void> {
+      paramsCache.set(aclAddress, publicParams);
+    },
+
     async clearCache(): Promise<void> {
-      cache.clear();
+      keyCache.clear();
+      paramsCache.clear();
     },
   };
 }

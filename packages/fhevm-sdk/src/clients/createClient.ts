@@ -3,7 +3,7 @@ import type { FhevmInstanceConfig } from '@zama-fhe/relayer-sdk/web';
 import type { StorageAdapter } from '../storage';
 import { FhevmError, ErrorCodes, ClientErrorMessages } from '../errors';
 import { createLogger } from '../utils/logger';
-import { createInstance } from '@zama-fhe/relayer-sdk/web';
+import { createInstance, ENCRYPTION_TYPES } from '@zama-fhe/relayer-sdk/web';
 import { validateConfig } from './utils/validateConfig';
 import { createIndexedDBStorage } from '../storage';
 
@@ -82,29 +82,57 @@ export function createClient(config: FhevmConfig): FhevmClient {
       
       logger.debug('Initializing FHEVM...', { chainId: resolvedChainId });
 
-      // Try to load cached public key
-      const cached = await storage.getPublicKey(aclAddress);
+      // Try to load cached public key and params
+      const cachedKey = await storage.getPublicKey(aclAddress);
+      const cachedParams = await storage.getPublicParams(aclAddress);
       
-      if (cached) {
-        logger.debug('Using cached public key', { publicKeyId: cached.publicKeyId });
+      if (cachedKey) {
+        logger.debug('Using cached public key', { publicKeyId: cachedKey.publicKeyId });
+      }
+      
+      if (cachedParams) {
+        const paramSizes = Object.keys(cachedParams);
+        logger.debug('Using cached public params', { sizes: paramSizes });
       }
 
-      // Create instance with cached key if available
+      // Create instance with cached data if available
       instance = await createInstance({
         ...instanceConfig,
         network: config.provider,
-        publicKey: cached ? {
-          data: cached.publicKey,
-          id: cached.publicKeyId,
+        publicKey: cachedKey ? {
+          data: cachedKey.publicKey,
+          id: cachedKey.publicKeyId,
         } : undefined,
+        publicParams: cachedParams || undefined,
       });
 
       // Save to cache if not cached
-      if (!cached) {
-        const current = instance.getPublicKey();
-        if (current) {
-          logger.debug('Caching public key', { publicKeyId: current.publicKeyId });
-          await storage.setPublicKey(aclAddress, current.publicKeyId, current.publicKey);
+      if (!cachedKey) {
+        const currentKey = instance.getPublicKey();
+        if (currentKey) {
+          logger.debug('Caching public key', { publicKeyId: currentKey.publicKeyId });
+          await storage.setPublicKey(aclAddress, currentKey.publicKeyId, currentKey.publicKey);
+        }
+      }
+
+      if (!cachedParams) {
+        // Fetch and cache all available public params
+        const allParams: Record<number, { publicParamsId: string; publicParams: Uint8Array }> = {};
+        
+        for (const bits of Object.keys(ENCRYPTION_TYPES)) {
+          const bitSize = Number(bits);
+          const params = instance.getPublicParams(bitSize as keyof typeof ENCRYPTION_TYPES);
+          if (params) {
+            allParams[bitSize] = {
+              publicParamsId: params.publicParamsId,
+              publicParams: params.publicParams,
+            };
+          }
+        }
+
+        if (Object.keys(allParams).length > 0) {
+          logger.debug('Caching public params', { sizes: Object.keys(allParams) });
+          await storage.setPublicParams(aclAddress, allParams);
         }
       }
 
