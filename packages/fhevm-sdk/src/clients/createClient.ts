@@ -1,5 +1,6 @@
 import type { Eip1193Provider, FhevmInstance } from '../types';
 import type { FhevmInstanceConfig } from '@zama-fhe/relayer-sdk/web';
+import type { StorageAdapter } from '../storage';
 import { FhevmError, ErrorCodes, ClientErrorMessages } from '../errors';
 import { createLogger } from '../utils/logger';
 import { createInstance } from '@zama-fhe/relayer-sdk/web';
@@ -15,6 +16,10 @@ export interface FhevmConfig {
    * FHEVM chain configuration
    */
   chain: FhevmInstanceConfig;
+  /**
+   * Storage adapter for caching public keys (defaults to IndexedDB)
+   */
+  storage?: StorageAdapter;
   /**
    * Enable debug logging
    */
@@ -50,7 +55,7 @@ export function createClient(config: FhevmConfig): FhevmClient {
   let instance: FhevmInstance | undefined;
   let error: Error | undefined;
   
-  const storage = createIndexedDBStorage();
+  const storage = config.storage || createIndexedDBStorage();
   const logger = createLogger('FHEVM', config.debug || false);
   
   /**

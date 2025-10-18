@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { createClient, FhevmClientStatus } from './createClient';
 import { ClientErrorMessages } from '../errors';
 import { sepolia } from '../chains';
+import { createInMemoryStorage } from '../storage';
 import type { FhevmConfig } from './createClient';
 
 describe('createClient', () => {
@@ -11,6 +12,7 @@ describe('createClient', () => {
     config = {
       provider: 'http://localhost:8545',
       chain: sepolia,
+      storage: createInMemoryStorage(),
     };
   });
 
