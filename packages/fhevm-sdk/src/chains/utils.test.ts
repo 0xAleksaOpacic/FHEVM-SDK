@@ -5,7 +5,7 @@ import { sepolia } from './index';
 describe('chains/utils', () => {
   describe('getChainById', () => {
     it('should return Sepolia for chainId 11155111', () => {
-      const chain = getChainById(sepolia.id);
+      const chain = getChainById(sepolia.chainId!);
       
       expect(chain).toBeDefined();
       expect(chain).toEqual(sepolia);
@@ -20,7 +20,7 @@ describe('chains/utils', () => {
 
   describe('isSupportedChain', () => {
     it('should return true for Sepolia (11155111)', () => {
-      expect(isSupportedChain(sepolia.id)).toBe(true);
+      expect(isSupportedChain(sepolia.chainId!)).toBe(true);
     });
 
     it('should return false for unknown chain', () => {
@@ -32,7 +32,7 @@ describe('chains/utils', () => {
     it('should return array with [11155111]', () => {
       const chainIds = getSupportedChainIds();
       
-      expect(chainIds).toEqual([sepolia.id]);
+      expect(chainIds).toEqual([sepolia.chainId]);
       expect(chainIds).toHaveLength(1);
     });
   });

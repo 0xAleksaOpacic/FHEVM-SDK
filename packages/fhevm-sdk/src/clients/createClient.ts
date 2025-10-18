@@ -1,4 +1,5 @@
-import type { Eip1193Provider, FhevmInstance, FhevmChain } from '../types';
+import type { Eip1193Provider, FhevmInstance } from '../types';
+import type { FhevmInstanceConfig } from '@zama-fhe/relayer-sdk/web';
 import { FhevmError, ErrorCodes, ClientErrorMessages } from '../errors';
 import { createLogger } from '../utils/logger';
 import { createInstance } from '@zama-fhe/relayer-sdk/web';
@@ -11,10 +12,9 @@ export interface FhevmConfig {
    */
   provider: string | Eip1193Provider;
   /**
-   * FHEVM chain to use (recommended)
-   * Import from '@fhevm-sdk/chains'
+   * FHEVM chain configuration
    */
-  chain: FhevmChain;
+  chain: FhevmInstanceConfig;
   /**
    * Enable debug logging
    */
@@ -71,7 +71,8 @@ export function createClient(config: FhevmConfig): FhevmClient {
     try {
       status = FhevmClientStatus.LOADING;
 
-      const { config: instanceConfig, id: resolvedChainId } = config.chain;
+      const instanceConfig = config.chain;
+      const resolvedChainId = instanceConfig.chainId;
       const aclAddress = instanceConfig.aclContractAddress;
       
       logger.debug('Initializing FHEVM...', { chainId: resolvedChainId });

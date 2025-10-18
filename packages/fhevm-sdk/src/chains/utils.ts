@@ -1,4 +1,4 @@
-import { sepolia } from './definitions/sepolia';
+import { sepolia } from './index';
 
 /**
  * All supported FHEVM chains
@@ -12,7 +12,7 @@ export const chains = [sepolia] as const;
  * @returns Chain configuration or undefined if not found
  */
 export function getChainById(chainId: number) {
-  return chains.find(chain => chain.id === chainId);
+  return chains.find(chain => chain.chainId === chainId);
 }
 
 /**
@@ -22,7 +22,7 @@ export function getChainById(chainId: number) {
  * @returns True if chain is supported
  */
 export function isSupportedChain(chainId: number): boolean {
-  return chains.some(chain => chain.id === chainId);
+  return chains.some(chain => chain.chainId === chainId);
 }
 
 /**
@@ -31,6 +31,6 @@ export function isSupportedChain(chainId: number): boolean {
  * @returns Array of supported chain IDs
  */
 export function getSupportedChainIds(): number[] {
-  return chains.map(chain => chain.id);
+  return chains.map(chain => chain.chainId!).filter(Boolean);
 }
 

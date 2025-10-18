@@ -1,7 +1,8 @@
 import { expectTypeOf, test } from 'vitest';
 import { createClient } from './createClient';
 import type { FhevmConfig, FhevmStatus } from './createClient';
-import type { FhevmInstance, FhevmChain } from '../types';
+import type { FhevmInstance } from '../types';
+import type { FhevmInstanceConfig } from '@zama-fhe/relayer-sdk/web';
 import { sepolia } from '../chains';
 
 test('createClient returns FhevmClient', () => {
@@ -30,12 +31,12 @@ test('FhevmClient method signatures', () => {
   expectTypeOf(client.isReady()).toEqualTypeOf<boolean>();
 });
 
-test('FhevmConfig accepts chain object', () => {
+test('FhevmConfig accepts chain config', () => {
   const config: FhevmConfig = {
     provider: 'http://localhost:8545',
     chain: sepolia,
   };
   
-  expectTypeOf(config.chain).toEqualTypeOf<FhevmChain>();
+  expectTypeOf(config.chain).toMatchTypeOf<FhevmInstanceConfig>();
 });
 
