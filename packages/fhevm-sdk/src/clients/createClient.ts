@@ -1,47 +1,13 @@
-import type { Eip1193Provider, FhevmInstance } from '../types';
-import type { FhevmInstanceConfig } from '@zama-fhe/relayer-sdk/web';
-import type { StorageAdapter } from '../storage';
+import type { FhevmInstance } from '@zama-fhe/relayer-sdk/web';
+import type { FhevmConfig, FhevmClient, FhevmStatus } from './types';
+import { FhevmClientStatus } from './types';
 import { FhevmError, ErrorCodes, ClientErrorMessages } from '../errors';
 import { createLogger } from '../utils/logger';
 import { createInstance, ENCRYPTION_TYPES } from '@zama-fhe/relayer-sdk/web';
 import { validateConfig } from './utils/validateConfig';
 import { createIndexedDBStorage } from '../storage';
-
-export interface FhevmConfig {
-  /**
-   * EIP-1193 provider or RPC URL
-   */
-  provider: string | Eip1193Provider;
-  /**
-   * FHEVM chain configuration
-   */
-  chain: FhevmInstanceConfig;
-  /**
-   * Storage adapter for caching public keys (defaults to IndexedDB)
-   */
-  storage?: StorageAdapter;
-  /**
-   * Enable debug logging
-   */
-  debug?: boolean;
-}
-
-export const FhevmClientStatus = {
-  IDLE: 'idle',
-  LOADING: 'loading',
-  READY: 'ready',
-  ERROR: 'error',
-} as const;
-
-export type FhevmStatus = typeof FhevmClientStatus[keyof typeof FhevmClientStatus];
-
-export interface FhevmClient {
-  config: FhevmConfig;
-  getStatus(): FhevmStatus;
-  initialize(): Promise<void>;
-  getInstance(): FhevmInstance | undefined;
-  isReady(): boolean;
-}
+import { publicDecrypt as publicDecryptAction } from '../actions/decryption';
+import type { DecryptedValues } from '../actions/decryption';
 
 /**
  * Creates an FHEVM client instance.
@@ -178,12 +144,31 @@ export function createClient(config: FhevmConfig): FhevmClient {
     return status === FhevmClientStatus.READY;
   }
   
+  /**
+   * Performs public decryption on publicly decryptable handles
+   * 
+   * @param handles - Array of ciphertext handles to decrypt
+   * @returns Map of handle to decrypted value
+   * @throws {FhevmError} If client is not initialized
+   */
+  async function publicDecrypt(handles: string[]): Promise<DecryptedValues> {
+    if (!instance) {
+      throw new FhevmError(
+        ErrorCodes.NOT_INITIALIZED,
+        ClientErrorMessages.NOT_INITIALIZED
+      );
+    }
+    
+    return await publicDecryptAction(instance, handles);
+  }
+  
   return {
     config,
     getStatus,
     initialize,
     getInstance,
     isReady,
+    publicDecrypt,
   };
 }
 

@@ -6,5 +6,6 @@ export const ClientErrorMessages = {
   UNSUPPORTED_CHAIN: (chainId: number, supportedChains: string) => 
     `Chain ${chainId} is not supported. Supported chains: ${supportedChains}. Please provide a custom chainConfig.`,
   INIT_FAILED: 'Failed to initialize FHEVM',
+  NOT_INITIALIZED: 'Client must be initialized before performing this action',
 } as const;
 

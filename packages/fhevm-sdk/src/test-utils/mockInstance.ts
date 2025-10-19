@@ -1,4 +1,4 @@
-import type { FhevmInstance } from '../types';
+import type { FhevmInstance } from '@zama-fhe/relayer-sdk/web';
 
 /**
  * Creates a mock FHEVM instance for testing
@@ -14,7 +14,7 @@ export async function createMockInstance(): Promise<FhevmInstance> {
       publicKey: new Uint8Array([1, 2, 3]),
       publicKeyId: 'mock-key-id',
     }),
-    getPublicParams: (bits) => ({
+    getPublicParams: (bits: number) => ({
       publicParams: new Uint8Array([4, 5, 6]),
       publicParamsId: `mock-params-${bits}`,
     }),

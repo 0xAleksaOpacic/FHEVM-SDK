@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createClient, FhevmClientStatus } from './createClient';
+import { createClient } from './createClient';
+import { FhevmClientStatus } from './types';
 import { ClientErrorMessages } from '../errors';
 import { sepolia } from '../chains';
 import { createInMemoryStorage } from '../storage';
-import type { FhevmConfig } from './createClient';
+import type { FhevmConfig } from './types';
 
 describe('createClient', () => {
   let config: FhevmConfig;
