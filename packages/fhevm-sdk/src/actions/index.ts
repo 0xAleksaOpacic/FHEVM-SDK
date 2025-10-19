@@ -1,3 +1,3 @@
-export { publicDecrypt } from './decryption';
-export type { DecryptedValue, DecryptedValues } from './decryption';
+export { publicDecrypt, userDecrypt } from './decryption';
+export type { DecryptedValue, DecryptedValues, UserDecryptParams, FhevmSigner } from './decryption';
 

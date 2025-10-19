@@ -6,8 +6,8 @@ import { createLogger } from '../utils/logger';
 import { createInstance, ENCRYPTION_TYPES } from '@zama-fhe/relayer-sdk/web';
 import { validateConfig } from './utils/validateConfig';
 import { createIndexedDBStorage } from '../storage';
-import { publicDecrypt as publicDecryptAction } from '../actions/decryption';
-import type { DecryptedValues } from '../actions/decryption';
+import { publicDecrypt as publicDecryptAction, userDecrypt as userDecryptAction } from '../actions/decryption';
+import type { DecryptedValues, UserDecryptParams, DecryptedValue } from '../actions/decryption';
 
 /**
  * Creates an FHEVM client instance.
@@ -162,6 +162,24 @@ export function createClient(config: FhevmConfig): FhevmClient {
     return await publicDecryptAction(instance, handles);
   }
   
+  /**
+   * Performs user decryption on a single ciphertext handle
+   * 
+   * @param params - Decryption parameters including handle, contractAddress, signer, and optional duration
+   * @returns The decrypted value
+   * @throws {FhevmError} If client is not initialized
+   */
+  async function userDecrypt(params: UserDecryptParams): Promise<DecryptedValue> {
+    if (!instance) {
+      throw new FhevmError(
+        ErrorCodes.NOT_INITIALIZED,
+        ClientErrorMessages.NOT_INITIALIZED
+      );
+    }
+    
+    return await userDecryptAction(instance, params);
+  }
+  
   return {
     config,
     getStatus,
@@ -169,6 +187,7 @@ export function createClient(config: FhevmConfig): FhevmClient {
     getInstance,
     isReady,
     publicDecrypt,
+    userDecrypt,
   };
 }
 

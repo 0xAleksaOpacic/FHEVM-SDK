@@ -9,4 +9,4 @@ export type { FhevmClient, FhevmConfig, FhevmStatus, Eip1193Provider } from './c
 export type { FhevmInstance } from '@zama-fhe/relayer-sdk/web';
 export type { ErrorCode } from './errors';
 export type { StorageAdapter, CachedPublicKey, CachedPublicParams } from './storage';
-export type { DecryptedValue, DecryptedValues } from './actions/decryption';
+export type { DecryptedValue, DecryptedValues, UserDecryptParams, FhevmSigner } from './actions/decryption';

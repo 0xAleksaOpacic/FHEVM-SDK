@@ -1,5 +1,6 @@
 import type { FhevmInstance, FhevmInstanceConfig } from '@zama-fhe/relayer-sdk/web';
 import type { StorageAdapter } from '../storage';
+import type { DecryptedValue, DecryptedValues, UserDecryptParams } from '../actions/decryption';
 
 export interface Eip1193Provider {
   request(args: { method: string; params?: unknown[] }): Promise<unknown>;
@@ -39,6 +40,7 @@ export interface FhevmClient {
   initialize(): Promise<void>;
   getInstance(): FhevmInstance | undefined;
   isReady(): boolean;
-  publicDecrypt(handles: string[]): Promise<Record<string, bigint | boolean | string>>;
+  publicDecrypt(handles: string[]): Promise<DecryptedValues>;
+  userDecrypt(params: UserDecryptParams): Promise<DecryptedValue>;
 }
 
