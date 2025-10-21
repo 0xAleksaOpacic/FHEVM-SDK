@@ -4,6 +4,8 @@ import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { useEffect, useState } from 'react';
 import { createClient, sepolia } from '@fhevm/sdk';
 import type { FhevmClient } from '@fhevm/sdk';
+import Image from 'next/image';
+import logo from './assets/logo.svg';
 
 export default function Home() {
   const { address, isConnected } = useAccount();
@@ -37,8 +39,15 @@ export default function Home() {
 
   return (
     <main className="container">
+      <div className="header">
+        <Image src={logo} alt="Zama Logo" className="logo" priority />
+      </div>
+      
       <div className="card">
-        <h1>🔐 FHEVM Counter Demo</h1>
+        <h1 style={{ textAlign: 'center' }}>FHEVM SDK Next.js Demo</h1>
+        <p className="subtitle">
+          Build confidential applications with Fully Homomorphic Encryption
+        </p>
         
         {/* Wallet Connection */}
         <section className="section">
@@ -48,11 +57,14 @@ export default function Home() {
               onClick={() => connect({ connector: connectors[0] })}
               className="btn-primary"
             >
-              Connect MetaMask
+              Connect Wallet
             </button>
           ) : (
-            <div>
-              <p>✅ Connected: {address?.slice(0, 6)}...{address?.slice(-4)}</p>
+            <div className="wallet-info">
+              <div style={{ flex: 1 }}>
+                <p style={{ marginBottom: '0.25rem', fontSize: '0.875rem', opacity: 0.7 }}>Connected Address</p>
+                <p className="wallet-address">{address?.slice(0, 8)}...{address?.slice(-6)}</p>
+              </div>
               <button onClick={() => disconnect()} className="btn-secondary">
                 Disconnect
               </button>
@@ -63,31 +75,37 @@ export default function Home() {
         {/* FHEVM Status */}
         {isConnected && (
           <section className="section">
-            <h2>2. FHEVM Status</h2>
-            <p>
-              Status: <span className={fhevmStatus === 'ready' ? 'status-ready' : 'status-loading'}>
-                {fhevmStatus}
+            <h2>2. FHEVM Initialization</h2>
+            <div className="status-badge">
+              <span style={{ fontSize: '1.25rem' }}>
+                {fhevmStatus === 'ready' ? '✓' : fhevmStatus === 'error' ? '✗' : '⏳'}
               </span>
-            </p>
+              <span className={fhevmStatus === 'ready' ? 'status-ready' : 'status-loading'}>
+                {fhevmStatus === 'ready' ? 'Ready' : fhevmStatus === 'error' ? 'Error' : 'Initializing...'}
+              </span>
+            </div>
           </section>
         )}
 
         {/* Counter Demo (placeholder) */}
-        {fhevmClient?.isReady() && (
+        {isConnected && fhevmClient?.isReady() && (
           <section className="section">
-            <h2>3. Encrypted Counter</h2>
+            <h2>3. Encrypted Counter Demo</h2>
             <p className="placeholder">
-              🚧 Contract interaction coming next...
+              🚧 Contract interactions coming soon...
+            </p>
+            <p style={{ marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+              This demo will show how to interact with encrypted data on the blockchain using FHE.
             </p>
             <div className="button-group">
               <button className="btn-primary" disabled>
                 Increment Counter
               </button>
               <button className="btn-secondary" disabled>
-                User Decrypt
+                Decrypt (User)
               </button>
               <button className="btn-secondary" disabled>
-                Public Decrypt
+                Decrypt (Public)
               </button>
             </div>
           </section>
