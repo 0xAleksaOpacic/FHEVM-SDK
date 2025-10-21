@@ -1,4 +1,4 @@
 [submodule "packages/hardhat"]
 	path = packages/hardhat
-	url = https://github.com/zama-ai/fhevm-hardhat-template
+	url = https://github.com/0xAleksaOpacic/fhevm-hardhat-template
 	branch = main
