@@ -1,7 +1,10 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: [
+    'src/index.ts',
+    'src/mock/index.ts'
+  ],
   format: ['esm'],
   dts: true,
   splitting: false,
@@ -18,7 +21,8 @@ export default defineConfig({
   // Keep these external (not bundled, resolved from node_modules)
   external: [
     '@zama-fhe/relayer-sdk',
-    'idb'
+    'idb',
+    'ethers'
   ]
 });
 
