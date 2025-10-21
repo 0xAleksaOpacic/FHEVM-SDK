@@ -12,12 +12,12 @@ export default defineConfig({
   
   // Bundle these dependencies inside the package
   noExternal: [
-    '@zama-fhe/relayer-sdk',
     '@fhevm/mock-utils'
   ],
   
-  // Keep these external (optional dependencies)
+  // Keep these external (not bundled, resolved from node_modules)
   external: [
+    '@zama-fhe/relayer-sdk',
     'idb'
   ]
 });

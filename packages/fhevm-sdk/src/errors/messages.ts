@@ -7,5 +7,6 @@ export const ClientErrorMessages = {
     `Chain ${chainId} is not supported. Supported chains: ${supportedChains}. Please provide a custom chainConfig.`,
   INIT_FAILED: 'Failed to initialize FHEVM',
   NOT_INITIALIZED: 'Client must be initialized before performing this action',
+  BROWSER_ONLY: 'FHEVM SDK can only be used in browser environments',
 } as const;
 

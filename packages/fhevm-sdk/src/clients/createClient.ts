@@ -3,7 +3,7 @@ import type { FhevmConfig, FhevmClient, FhevmStatus } from './types';
 import { FhevmClientStatus } from './types';
 import { FhevmError, ErrorCodes, ClientErrorMessages } from '../errors';
 import { createLogger } from '../utils/logger';
-import { createInstance, ENCRYPTION_TYPES } from '@zama-fhe/relayer-sdk/web';
+import { loadRelayerSDK } from '../internal/relayerLoader';
 import { validateConfig } from './utils/validateConfig';
 import { createIndexedDBStorage } from '../storage';
 import { publicDecrypt as publicDecryptAction, userDecrypt as userDecryptAction } from '../actions/decryption';
@@ -42,6 +42,9 @@ export function createClient(config: FhevmConfig): FhevmClient {
     try {
       status = FhevmClientStatus.LOADING;
 
+      // Lazy-load the relayer SDK
+      const sdk = await loadRelayerSDK();
+
       const instanceConfig = config.chain;
       const resolvedChainId = instanceConfig.chainId;
       const aclAddress = instanceConfig.aclContractAddress;
@@ -62,7 +65,7 @@ export function createClient(config: FhevmConfig): FhevmClient {
       }
 
       // Create instance with cached data if available
-      instance = await createInstance({
+      instance = await sdk.createInstance({
         ...instanceConfig,
         network: config.provider,
         publicKey: cachedKey ? {
@@ -85,9 +88,9 @@ export function createClient(config: FhevmConfig): FhevmClient {
         // Fetch and cache all available public params
         const allParams: Record<number, { publicParamsId: string; publicParams: Uint8Array }> = {};
         
-        for (const bits of Object.keys(ENCRYPTION_TYPES)) {
+        for (const bits of Object.keys(sdk.ENCRYPTION_TYPES)) {
           const bitSize = Number(bits);
-          const params = instance.getPublicParams(bitSize as keyof typeof ENCRYPTION_TYPES);
+          const params = instance.getPublicParams(bitSize as keyof typeof sdk.ENCRYPTION_TYPES);
           if (params) {
             allParams[bitSize] = {
               publicParamsId: params.publicParamsId,
