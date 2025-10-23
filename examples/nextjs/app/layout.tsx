@@ -15,10 +15,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Note: Telegraf is a commercial font. For production, either:
-            1. License and self-host the font
-            2. Use a similar alternative (e.g., Inter, Space Grotesk)
-            3. The CSS already includes fallbacks */}
       </head>
       <body>
         <Providers>{children}</Providers>

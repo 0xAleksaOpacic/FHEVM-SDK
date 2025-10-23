@@ -1,142 +1,38 @@
 'use client';
 
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import logo from './assets/logo.svg';
-
-// Localhost FHEVM configuration (from fhevm_relayer_metadata)
-const localhostConfig = {
-  chainId: 31337,
-  gatewayChainId: 55815,
-  aclContractAddress: '0x50157CFfD6bBFA2DECe204a89ec419c23ef5755D', // ACLAddress
-  kmsContractAddress: '0x1364cBBf2cDF5032C47d8226a6f6FBD2AFCDacAC', // KMSVerifierAddress
-  inputVerifierContractAddress: '0x901F8942346f7AB3a01F6D7613119Bca447Bb030', // InputVerifierAddress
-  verifyingContractAddressDecryption: '0xa02Cda4Ca3a71D7C46997716F4283aa851C28812', // DecryptionOracleAddress
-  verifyingContractAddressInputVerification: '0xCD3ab3bd6bcc0c0bf3E27912a92043e817B1cf69', // CoprocessorAddress (gateway InputVerification contract)
-};
-
-const CONTRACT_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
-
-// Minimal ABI for our counter contract
-const CONTRACT_ABI = [
-  'function increment(bytes32 inputHandle, bytes inputProof) external',
-  'function incrementPublic(bytes32 inputHandle, bytes inputProof) external',
-  'function getCount() external view returns (uint256)',
-  'function getPublicCount() external view returns (uint256)',
-];
+import { FhevmClientStatus } from '@fhevm/sdk';
+import { useFhevmClient } from '@/hooks/useFhevmClient';
+import {
+  incrementCounter,
+  decryptUserCounter,
+  decryptPublicCounter,
+} from '@/lib/contracts/counter';
 
 export default function Home() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
-  
-  const [fhevmClient, setFhevmClient] = useState<any>(null);
-  const [fhevmStatus, setFhevmStatus] = useState<string>('idle');
+  const { client, status, isReady } = useFhevmClient();
+
   const [userValue, setUserValue] = useState<string>('-');
   const [publicValue, setPublicValue] = useState<string>('-');
   const [loading, setLoading] = useState<string>('');
   const [txStatus, setTxStatus] = useState<string>('');
 
-  // Initialize FHEVM mock client
-  useEffect(() => {
-    if (!isConnected) return;
-
-    async function initMockClient() {
-      try {
-        setFhevmStatus('initializing...');
-
-        // Dynamically import to avoid SSR issues
-        const { JsonRpcProvider } = await import('ethers');
-        const { createMockClient } = await import('@fhevm/sdk/mock');
-
-        // Create ethers provider
-        const provider = new JsonRpcProvider('http://localhost:8545');
-
-        // Create mock client
-        const client = await createMockClient(provider, localhostConfig);
-
-        setFhevmClient(client);
-        setFhevmStatus('ready');
-      } catch (err) {
-        console.error('FHEVM init error:', err);
-        setFhevmStatus('error');
-      }
-    }
-
-    initMockClient();
-  }, [isConnected]);
-
-  const handleIncrementUser = async () => {
-    if (!fhevmClient || !address) return;
-    setLoading('increment-user');
+  const handleIncrement = async (type: 'user' | 'public') => {
+    if (!client || !address) return;
+    setLoading(`increment-${type}`);
     setTxStatus('Encrypting value...');
-    
-    try {
-      const { Contract, BrowserProvider } = await import('ethers');
-      const instance = fhevmClient.getInstance();
-      
-      // Create encrypted input
-      const input = instance.createEncryptedInput(CONTRACT_ADDRESS, address);
-      input.add32(1); // Increment by 1
-      const encryptedData = await input.encrypt();
-      
-      setTxStatus('Sending transaction...');
-      
-      // Get signer
-      const provider = new BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      
-      // Create contract instance
-      const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-      
-      // Send transaction
-      const tx = await contract.increment(encryptedData.handles[0], encryptedData.inputProof);
-      
-      setTxStatus('Waiting for confirmation...');
-      await tx.wait();
-      
-      setTxStatus('✓ User counter incremented successfully!');
-      setTimeout(() => setTxStatus(''), 3000);
-    } catch (err) {
-      console.error('Increment error:', err);
-      setTxStatus('✗ Transaction failed');
-      setTimeout(() => setTxStatus(''), 3000);
-    } finally {
-      setLoading('');
-    }
-  };
 
-  const handleIncrementPublic = async () => {
-    if (!fhevmClient || !address) return;
-    setLoading('increment-public');
-    setTxStatus('Encrypting value...');
-    
     try {
-      const { Contract, BrowserProvider } = await import('ethers');
-      const instance = fhevmClient.getInstance();
-      
-      // Create encrypted input
-      const input = instance.createEncryptedInput(CONTRACT_ADDRESS, address);
-      input.add32(1); // Increment by 1
-      const encryptedData = await input.encrypt();
-      
       setTxStatus('Sending transaction...');
-      
-      // Get signer
-      const provider = new BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      
-      // Create contract instance
-      const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-      
-      // Send transaction
-      const tx = await contract.incrementPublic(encryptedData.handles[0], encryptedData.inputProof);
-      
-      setTxStatus('Waiting for confirmation...');
-      await tx.wait();
-      
-      setTxStatus('✓ Public counter incremented successfully!');
+      await incrementCounter(client, address, type);
+
+      setTxStatus(`✓ ${type === 'user' ? 'User' : 'Public'} counter incremented successfully!`);
       setTimeout(() => setTxStatus(''), 3000);
     } catch (err) {
       console.error('Increment error:', err);
@@ -148,48 +44,12 @@ export default function Home() {
   };
 
   const handleDecryptUser = async () => {
-    if (!fhevmClient || !address) return;
+    if (!client || !address) return;
     setLoading('decrypt-user');
-    
+
     try {
-      const { Contract, BrowserProvider } = await import('ethers');
-      
-      // Get contract instance
-      const provider = new BrowserProvider(window.ethereum);
-      const ethersSigner = await provider.getSigner();
-      const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
-      
-      // Get encrypted handle (returns BigNumber)
-      const handle = await contract.getCount();
-      
-      // Convert BigNumber to 32-byte hex string (0x + 64 hex chars)
-      const handleHex = '0x' + handle.toString(16).padStart(64, '0');
-      
-      // Wrap ethers signer to match Viem WalletClient interface
-      const viemCompatibleSigner = {
-        account: {
-          address: address as `0x${string}`,
-        },
-        signTypedData: async (args: any) => {
-          // Ethers v6 signTypedData expects types WITHOUT EIP712Domain
-          const { EIP712Domain, ...typesWithoutDomain } = args.types;
-          
-          return await ethersSigner.signTypedData(
-            args.domain,
-            typesWithoutDomain,  // Remove EIP712Domain from types
-            args.message
-          );
-        },
-      };
-      
-      // Decrypt using SDK
-      const decrypted = await fhevmClient.userDecrypt({
-        handle: handleHex,
-        contractAddress: CONTRACT_ADDRESS,
-        signer: viemCompatibleSigner,
-      });
-      
-      setUserValue(decrypted.toString());
+      const value = await decryptUserCounter(client, address);
+      setUserValue(value);
     } catch (err) {
       console.error('Decrypt error:', err);
       setUserValue('Error');
@@ -199,26 +59,12 @@ export default function Home() {
   };
 
   const handleDecryptPublic = async () => {
-    if (!fhevmClient) return;
+    if (!client) return;
     setLoading('decrypt-public');
-    
+
     try {
-      const { Contract, JsonRpcProvider } = await import('ethers');
-      
-      // Get contract instance
-      const provider = new JsonRpcProvider('http://localhost:8545');
-      const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
-      
-      // Get encrypted handle (returns BigNumber)
-      const handle = await contract.getPublicCount();
-      
-      // Convert BigNumber to 32-byte hex string (0x + 64 hex chars)
-      const handleHex = '0x' + handle.toString(16).padStart(64, '0');
-      
-      // Decrypt using SDK
-      const decrypted = await fhevmClient.publicDecrypt([handleHex]);
-      
-      setPublicValue(decrypted[handleHex].toString());
+      const value = await decryptPublicCounter(client);
+      setPublicValue(value);
     } catch (err) {
       console.error('Decrypt error:', err);
       setPublicValue('Error');
@@ -268,17 +114,17 @@ export default function Home() {
             <h2>2. FHEVM Initialization</h2>
             <div className="status-badge">
               <span style={{ fontSize: '1.25rem' }}>
-                {fhevmStatus === 'ready' ? '✓' : fhevmStatus === 'error' ? '✗' : '⏳'}
+                {status === FhevmClientStatus.READY ? '✓' : status === FhevmClientStatus.ERROR ? '✗' : '⏳'}
               </span>
-              <span className={fhevmStatus === 'ready' ? 'status-ready' : 'status-loading'}>
-                {fhevmStatus === 'ready' ? 'Ready' : fhevmStatus === 'error' ? 'Error' : 'Initializing...'}
+              <span className={status === FhevmClientStatus.READY ? 'status-ready' : 'status-loading'}>
+                {status === FhevmClientStatus.READY ? 'Ready' : status === FhevmClientStatus.ERROR ? 'Error' : 'Loading...'}
               </span>
             </div>
           </section>
         )}
 
         {/* Counter Demo */}
-        {isConnected && fhevmClient?.isReady() && (
+        {isConnected && isReady && (
           <section className="section">
             <h2>3. Encrypted Counter Demo</h2>
             <p style={{ marginBottom: '1.5rem', fontSize: '0.95rem' }}>
@@ -309,7 +155,7 @@ export default function Home() {
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1rem' }}>
                 <button 
                   className="btn-primary" 
-                  onClick={handleIncrementUser}
+                  onClick={() => handleIncrement('user')}
                   disabled={loading === 'increment-user'}
                 >
                   {loading === 'increment-user' ? 'Incrementing...' : 'Increment User Counter'}
@@ -338,7 +184,7 @@ export default function Home() {
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1rem' }}>
                 <button 
                   className="btn-primary" 
-                  onClick={handleIncrementPublic}
+                  onClick={() => handleIncrement('public')}
                   disabled={loading === 'increment-public'}
                 >
                   {loading === 'increment-public' ? 'Incrementing...' : 'Increment Public Counter'}
