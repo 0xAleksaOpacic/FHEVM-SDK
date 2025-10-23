@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useFhevm } from './useFhevm';
+import { useWalletClient } from 'wagmi';
 
 export interface UseFhevmUserDecryptOptions {
   /**
@@ -14,37 +15,37 @@ export interface UseFhevmUserDecryptOptions {
  */
 export function useFhevmUserDecrypt({ contractAddress }: UseFhevmUserDecryptOptions) {
   const { client, isReady } = useFhevm();
+  const { data: walletClient } = useWalletClient();
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const decrypt = useCallback(
-    async (handle: string, userAddress: string): Promise<bigint | boolean | string> => {
+    async (handle: string): Promise<bigint | boolean | string> => {
       if (!isReady || !client) {
         throw new Error('FHEVM client is not ready');
+      }
+
+      if (!walletClient) {
+        throw new Error('Wallet not connected');
       }
 
       setIsDecrypting(true);
       setError(null);
 
       try {
-        // Get ethers signer and create Viem-compatible adapter
-        const { BrowserProvider } = await import('ethers');
-        const provider = new BrowserProvider((window as any).ethereum);
-        const ethersSigner = await provider.getSigner();
-
-        // Create Viem-compatible signer for SDK
-        const viemSigner = {
+        // Adapt wagmi's walletClient to SDK's FhevmSigner interface
+        const signer = {
           account: {
-            address: userAddress as `0x${string}`,
+            address: walletClient.account.address,
           },
           signTypedData: async (args: any) => {
-            // Remove EIP712Domain from types for ethers v6 compatibility
-            const { EIP712Domain, ...typesWithoutDomain } = args.types;
-            return await ethersSigner.signTypedData(
-              args.domain,
-              typesWithoutDomain,
-              args.message
-            );
+            return await walletClient.signTypedData({
+              account: walletClient.account,
+              domain: args.domain,
+              types: args.types,
+              primaryType: args.primaryType,
+              message: args.message,
+            });
           },
         };
 
@@ -52,7 +53,7 @@ export function useFhevmUserDecrypt({ contractAddress }: UseFhevmUserDecryptOpti
         const decrypted = await client.userDecrypt({
           handle,
           contractAddress,
-          signer: viemSigner,
+          signer,
         });
 
         return decrypted;
@@ -64,7 +65,7 @@ export function useFhevmUserDecrypt({ contractAddress }: UseFhevmUserDecryptOpti
         setIsDecrypting(false);
       }
     },
-    [client, isReady, contractAddress]
+    [client, isReady, contractAddress, walletClient]
   );
 
   return {

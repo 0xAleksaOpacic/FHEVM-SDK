@@ -60,7 +60,7 @@ export default function Home() {
 
     try {
       const handle = await getUserCounterHandle(mode);
-      const value = await userDecrypt(handle, address);
+      const value = await userDecrypt(handle);
       setUserValue(value.toString());
     } catch (err) {
       console.error('Decrypt error:', err);

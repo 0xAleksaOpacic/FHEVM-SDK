@@ -23,17 +23,14 @@
     "ethers": "^6.0.0",
     "wagmi": "^2.0.0"
   },
-  "peerDependenciesMeta": {
-    "wagmi": {
-      "optional": true
-    }
-  },
   "dependencies": {
     "@fhevm/sdk": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^18.3.0",
     "react": "^18.3.1",
+    "ethers": "^6.0.0",
+    "wagmi": "^2.0.0",
     "typescript": "^5.8.2",
     "tsup": "^8.0.0"
   },
