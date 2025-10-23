@@ -1,7 +1,23 @@
 import { LOCALHOST_COUNTER, LOCALHOST_RPC_URL } from '@/config/localhost';
+import { SEPOLIA_COUNTER, SEPOLIA_RPC_URL } from '@/config/sepolia';
 import { handleToHex, getEthersSigner, getEthersContract } from './utils';
 import { createViemCompatibleSigner } from '@/lib/fhevm/adapters';
 import type { FhevmClient } from '@fhevm/sdk';
+import type { NetworkMode } from '@/config';
+
+/**
+ * Get contract configuration based on network mode
+ */
+function getCounterConfig(mode: NetworkMode) {
+  return mode === 'localhost' ? LOCALHOST_COUNTER : SEPOLIA_COUNTER;
+}
+
+/**
+ * Get RPC URL based on network mode
+ */
+function getRpcUrl(mode: NetworkMode) {
+  return mode === 'localhost' ? LOCALHOST_RPC_URL : SEPOLIA_RPC_URL;
+}
 
 /**
  * Increments the counter (user or public) with an encrypted value
@@ -9,23 +25,28 @@ import type { FhevmClient } from '@fhevm/sdk';
 export async function incrementCounter(
   fhevmClient: FhevmClient,
   userAddress: string,
-  counterType: 'user' | 'public'
+  counterType: 'user' | 'public',
+  mode: NetworkMode
 ) {
+  const config = getCounterConfig(mode);
+
   // Create encrypted input
   const instance = fhevmClient.getInstance();
   if (!instance) {
     throw new Error('FHEVM instance not initialized');
   }
   
-  const input = instance.createEncryptedInput(LOCALHOST_COUNTER.address, userAddress);
+
+  const input = instance.createEncryptedInput(config.address, userAddress);
   input.add32(1); // Increment by 1
+
   const encryptedData = await input.encrypt();
 
   // Get signer and contract
   const signer = await getEthersSigner();
   const contract = await getEthersContract(
-    LOCALHOST_COUNTER.address,
-    LOCALHOST_COUNTER.abi,
+    config.address,
+    config.abi,
     signer
   );
 
@@ -44,16 +65,18 @@ export async function incrementCounter(
  */
 export async function decryptUserCounter(
   fhevmClient: FhevmClient,
-  userAddress: string
+  userAddress: string,
+  mode: NetworkMode
 ) {
+  const config = getCounterConfig(mode);
   const { Contract, BrowserProvider } = await import('ethers');
   
   // Get contract and handle
   const provider = new BrowserProvider(window.ethereum);
   const ethersSigner = await provider.getSigner();
   const contract = new Contract(
-    LOCALHOST_COUNTER.address,
-    LOCALHOST_COUNTER.abi,
+    config.address,
+    config.abi,
     provider
   );
 
@@ -66,7 +89,7 @@ export async function decryptUserCounter(
   // Decrypt using SDK
   const decrypted = await fhevmClient.userDecrypt({
     handle: handleHex,
-    contractAddress: LOCALHOST_COUNTER.address,
+    contractAddress: config.address,
     signer: viemSigner,
   });
 
@@ -76,14 +99,19 @@ export async function decryptUserCounter(
 /**
  * Decrypts the public counter value (no signature required)
  */
-export async function decryptPublicCounter(fhevmClient: FhevmClient) {
+export async function decryptPublicCounter(
+  fhevmClient: FhevmClient,
+  mode: NetworkMode
+) {
+  const config = getCounterConfig(mode);
+  const rpcUrl = getRpcUrl(mode);
   const { Contract, JsonRpcProvider } = await import('ethers');
   
   // Get contract and handle
-  const provider = new JsonRpcProvider(LOCALHOST_RPC_URL);
+  const provider = new JsonRpcProvider(rpcUrl);
   const contract = new Contract(
-    LOCALHOST_COUNTER.address,
-    LOCALHOST_COUNTER.abi,
+    config.address,
+    config.abi,
     provider
   );
 

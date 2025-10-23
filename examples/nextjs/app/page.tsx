@@ -16,7 +16,7 @@ export default function Home() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
-  const { client, status, isReady } = useFhevmClient();
+  const { client, status, isReady, mode } = useFhevmClient();
 
   const [userValue, setUserValue] = useState<string>('-');
   const [publicValue, setPublicValue] = useState<string>('-');
@@ -30,7 +30,7 @@ export default function Home() {
 
     try {
       setTxStatus('Sending transaction...');
-      await incrementCounter(client, address, type);
+      await incrementCounter(client, address, type, mode);
 
       setTxStatus(`✓ ${type === 'user' ? 'User' : 'Public'} counter incremented successfully!`);
       setTimeout(() => setTxStatus(''), 3000);
@@ -48,7 +48,7 @@ export default function Home() {
     setLoading('decrypt-user');
 
     try {
-      const value = await decryptUserCounter(client, address);
+      const value = await decryptUserCounter(client, address, mode);
       setUserValue(value);
     } catch (err) {
       console.error('Decrypt error:', err);
@@ -63,7 +63,7 @@ export default function Home() {
     setLoading('decrypt-public');
 
     try {
-      const value = await decryptPublicCounter(client);
+      const value = await decryptPublicCounter(client, mode);
       setPublicValue(value);
     } catch (err) {
       console.error('Decrypt error:', err);
@@ -83,6 +83,9 @@ export default function Home() {
         <h1 style={{ textAlign: 'center' }}>FHEVM SDK Next.js Demo</h1>
         <p className="subtitle">
           Build confidential applications with Fully Homomorphic Encryption
+        </p>
+        <p style={{ textAlign: 'center', fontSize: '0.875rem', opacity: 0.7, marginTop: '0.5rem' }}>
+          Network: <strong>{mode === 'sepolia' ? 'Sepolia Testnet' : 'Localhost'}</strong>
         </p>
         
         {/* Wallet Connection */}

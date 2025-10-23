@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { initializeFhevmClient } from '@/lib/fhevm/client';
 import { FhevmClientStatus, type FhevmStatus } from '@fhevm/sdk';
+import { NETWORK_MODE } from '@/config';
 
 /**
  * React hook for managing FHEVM client lifecycle
  * Automatically initializes when wallet is connected
+ * Network mode is determined by NEXT_PUBLIC_NETWORK_MODE env var
  */
 export function useFhevmClient() {
   const { isConnected } = useAccount();
@@ -22,11 +24,11 @@ export function useFhevmClient() {
       return;
     }
 
-    // Initialize FHEVM client
+    // Initialize FHEVM client with configured network mode
     async function init() {
       try {
         setStatus(FhevmClientStatus.LOADING);
-        const fhevmClient = await initializeFhevmClient();
+        const fhevmClient = await initializeFhevmClient(NETWORK_MODE);
         setClient(fhevmClient);
         setStatus(FhevmClientStatus.READY);
       } catch (err) {
@@ -42,6 +44,7 @@ export function useFhevmClient() {
     client,
     status,
     isReady: status === FhevmClientStatus.READY && client?.isReady(),
+    mode: NETWORK_MODE, // Expose current network mode
   };
 }
 
