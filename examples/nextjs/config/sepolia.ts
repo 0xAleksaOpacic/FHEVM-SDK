@@ -2,7 +2,6 @@ import { COUNTER_ABI } from './contracts';
 
 // NOTE: FHEVM contract addresses (ACL, KMS, InputVerifier, etc.) 
 // are built into the SDK's 'sepolia' export and match official docs.
-// No need to hardcode them here!
 
 // Sepolia RPC URL
 // Default: PublicNode's free RPC endpoint

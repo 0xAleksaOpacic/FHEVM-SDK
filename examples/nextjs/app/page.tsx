@@ -4,19 +4,25 @@ import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { useState } from 'react';
 import Image from 'next/image';
 import logo from './assets/logo.svg';
-import { FhevmClientStatus } from '@fhevm/sdk';
-import { useFhevmClient } from '@/hooks/useFhevmClient';
+import { useFhevm, useFhevmEncrypt, useFhevmPublicDecrypt, useFhevmUserDecrypt, FhevmClientStatus } from '@fhevm/react-sdk';
 import {
-  incrementCounter,
-  decryptUserCounter,
-  decryptPublicCounter,
+  sendIncrementTx,
+  getUserCounterHandle,
+  getPublicCounterHandle,
 } from '@/lib/contracts/counter';
+import { LOCALHOST_COUNTER_ADDRESS } from '@/config/localhost';
+import { SEPOLIA_COUNTER_ADDRESS } from '@/config/sepolia';
 
 export default function Home() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
-  const { client, status, isReady, mode } = useFhevmClient();
+  const { client, status, isReady, network: mode } = useFhevm();
+
+  const contractAddress = mode === 'localhost' ? LOCALHOST_COUNTER_ADDRESS : SEPOLIA_COUNTER_ADDRESS;
+  const { createInput } = useFhevmEncrypt({ contractAddress });
+  const { decrypt: publicDecrypt } = useFhevmPublicDecrypt();
+  const { decrypt: userDecrypt } = useFhevmUserDecrypt({ contractAddress });
 
   const [userValue, setUserValue] = useState<string>('-');
   const [publicValue, setPublicValue] = useState<string>('-');
@@ -29,8 +35,13 @@ export default function Home() {
     setTxStatus('Encrypting value...');
 
     try {
+      // Create encrypted input
+      const input = createInput(address);
+      input.add32(1); // Increment by 1
+      const encrypted = await input.encrypt();
+
       setTxStatus('Sending transaction...');
-      await incrementCounter(client, address, type, mode);
+      await sendIncrementTx(encrypted.handles[0], encrypted.inputProof, type, mode);
 
       setTxStatus(`✓ ${type === 'user' ? 'User' : 'Public'} counter incremented successfully!`);
       setTimeout(() => setTxStatus(''), 3000);
@@ -48,8 +59,9 @@ export default function Home() {
     setLoading('decrypt-user');
 
     try {
-      const value = await decryptUserCounter(client, address, mode);
-      setUserValue(value);
+      const handle = await getUserCounterHandle(mode);
+      const value = await userDecrypt(handle, address);
+      setUserValue(value.toString());
     } catch (err) {
       console.error('Decrypt error:', err);
       setUserValue('Error');
@@ -63,8 +75,9 @@ export default function Home() {
     setLoading('decrypt-public');
 
     try {
-      const value = await decryptPublicCounter(client, mode);
-      setPublicValue(value);
+      const handle = await getPublicCounterHandle(mode);
+      const value = await publicDecrypt(handle);
+      setPublicValue(value.toString());
     } catch (err) {
       console.error('Decrypt error:', err);
       setPublicValue('Error');

@@ -1,9 +1,9 @@
-import { sepolia } from './index';
+import { localhost, sepolia } from './index';
 
 /**
  * All supported FHEVM chains
  */
-export const chains = [sepolia] as const;
+export const chains = [localhost, sepolia] as const;
 
 /**
  * Get chain configuration by chain ID

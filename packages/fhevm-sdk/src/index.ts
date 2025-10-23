@@ -1,6 +1,6 @@
 export { createClient, FhevmClientStatus } from './clients';
 export { FhevmError, ErrorCodes } from './errors';
-export { sepolia, chains, getChainById, isSupportedChain, getSupportedChainIds } from './chains';
+export { localhost, sepolia, chains, getChainById, isSupportedChain, getSupportedChainIds } from './chains';
 export { createIndexedDBStorage, createInMemoryStorage } from './storage';
 
 export type { FhevmClient, FhevmConfig, FhevmStatus, Eip1193Provider } from './clients';
