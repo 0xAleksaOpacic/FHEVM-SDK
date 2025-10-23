@@ -16,8 +16,8 @@
       "import": "./dist/storage/index.js"
     },
     "./mock": {
-      "types": "./dist/mock/index.d.ts",
-      "import": "./dist/mock/index.js"
+      "types": "./dist/clients/mock.d.ts",
+      "import": "./dist/clients/mock.js"
     }
   },
   "scripts": {

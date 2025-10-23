@@ -3,7 +3,7 @@ import type { FhevmConfig, FhevmClient, FhevmStatus } from './types';
 import { FhevmClientStatus } from './types';
 import { FhevmError, ErrorCodes, ClientErrorMessages } from '../errors';
 import { createLogger } from '../utils/logger';
-import { loadRelayerSDK } from '../internal/relayerLoader';
+import { loadRelayerSDK } from './utils/relayerLoader';
 import { validateConfig } from './utils/validateConfig';
 import { createIndexedDBStorage } from '../storage';
 import { publicDecrypt as publicDecryptAction, userDecrypt as userDecryptAction } from '../actions/decryption';

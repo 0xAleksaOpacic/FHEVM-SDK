@@ -1,4 +1,4 @@
-import { FhevmError, ErrorCodes, ClientErrorMessages } from '../errors';
+import { FhevmError, ErrorCodes, ClientErrorMessages } from '../../errors';
 
 type RelayerSDK = typeof import('@zama-fhe/relayer-sdk/web');
 

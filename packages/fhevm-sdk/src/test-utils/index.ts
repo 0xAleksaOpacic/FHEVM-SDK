@@ -1,2 +1,0 @@
-export { createMockInstance } from './mockInstance';
-

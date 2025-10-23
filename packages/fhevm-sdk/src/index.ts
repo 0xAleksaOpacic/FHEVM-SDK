@@ -1,11 +1,9 @@
-export { createClient } from './clients/createClient';
-export { FhevmClientStatus } from './clients/types';
+export { createClient, FhevmClientStatus } from './clients';
 export { FhevmError, ErrorCodes } from './errors';
 export { sepolia, chains, getChainById, isSupportedChain, getSupportedChainIds } from './chains';
-export { createMockInstance } from './test-utils';
 export { createIndexedDBStorage, createInMemoryStorage } from './storage';
 
-export type { FhevmClient, FhevmConfig, FhevmStatus, Eip1193Provider } from './clients/types';
+export type { FhevmClient, FhevmConfig, FhevmStatus, Eip1193Provider } from './clients';
 export type { FhevmInstance, FhevmInstanceConfig } from '@zama-fhe/relayer-sdk/web';
 export type { ErrorCode } from './errors';
 export type { StorageAdapter, CachedPublicKey, CachedPublicParams } from './storage';

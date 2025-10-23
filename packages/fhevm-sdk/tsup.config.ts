@@ -3,7 +3,7 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   entry: [
     'src/index.ts',
-    'src/mock/index.ts'
+    'src/clients/mock.ts'
   ],
   format: ['esm'],
   dts: true,

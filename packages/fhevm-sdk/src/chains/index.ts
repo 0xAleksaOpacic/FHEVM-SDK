@@ -1,5 +1,5 @@
 import type { FhevmInstanceConfig } from '@zama-fhe/relayer-sdk/web';
-import { getRelayerSDK, isRelayerSDKLoaded } from '../internal/relayerLoader';
+import { getRelayerSDK, isRelayerSDKLoaded } from '../clients/utils/relayerLoader';
 
 /**
  * Sepolia chain configuration.
