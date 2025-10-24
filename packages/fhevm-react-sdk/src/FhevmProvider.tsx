@@ -65,6 +65,8 @@ export function FhevmProvider({
 
     async function initializeClient() {
       try {
+        // Clear old client when deps change
+        setClient(null);
         setStatus(FhevmClientStatus.LOADING);
 
         // Get default config from SDK
@@ -116,6 +118,9 @@ export function FhevmProvider({
 
     return () => {
       cancelled = true;
+      // Clear client on unmount
+      setClient(null);
+      setStatus(FhevmClientStatus.IDLE);
     };
   }, [network, rpcUrl, chainConfig, debug, onError]);
 
