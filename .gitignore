@@ -9,3 +9,4 @@ packages/*/.turbo
 packages/*/coverage
 tmp*
 .vscode
+.cursor
