@@ -12,6 +12,12 @@ export interface UseFhevmUserDecryptOptions {
  * Composable for user-specific decryption of encrypted values
  * Requires user signature (EIP-712) to prove ownership
  * 
+ * Supports both single and batch decryption:
+ * - Single: `decrypt(handle, wallet)` → returns `bigint | boolean | string`
+ * - Batch: `decrypt([handle1, handle2], wallet)` → returns `Record<string, bigint | boolean | string>`
+ * 
+ * For batch operations, only ONE signature is required for all handles!
+ * 
  * @example
  * ```vue
  * <script setup>
@@ -23,8 +29,11 @@ export interface UseFhevmUserDecryptOptions {
  *   contractAddress: '0x...' 
  * });
  * 
- * // Pass wallet as parameter
+ * // Single decryption
  * const value = await decrypt('0x123...', wallet);
+ * 
+ * // Batch decryption (ONE signature!)
+ * const values = await decrypt(['0x123...', '0x456...'], wallet);
  * </script>
  * ```
  */
@@ -33,10 +42,15 @@ export function useFhevmUserDecrypt({ contractAddress }: UseFhevmUserDecryptOpti
   const isDecrypting = ref(false);
   const error = ref<Error | null>(null);
 
-  const decrypt = async (
-    handle: string,
+  // Single handle overload
+  function decrypt(handle: string, wallet: any): Promise<bigint | boolean | string>;
+  // Batch handles overload
+  function decrypt(handles: string[], wallet: any): Promise<Record<string, bigint | boolean | string>>;
+  // Implementation
+  async function decrypt(
+    handleOrHandles: string | string[],
     wallet: any // vue-dapp wallet
-  ): Promise<bigint | boolean | string> => {
+  ): Promise<bigint | boolean | string | Record<string, bigint | boolean | string>> {
     if (!isReady.value || !client.value) {
       throw new Error('FHEVM client is not ready');
     }
@@ -49,6 +63,8 @@ export function useFhevmUserDecrypt({ contractAddress }: UseFhevmUserDecryptOpti
     error.value = null;
 
     try {
+      const isSingle = typeof handleOrHandles === 'string';
+
       // Create signer adapter for vue-dapp wallet
       const signer = {
         account: {
@@ -73,14 +89,22 @@ export function useFhevmUserDecrypt({ contractAddress }: UseFhevmUserDecryptOpti
         },
       };
 
-      // Decrypt using SDK
-      const decrypted = await client.value.userDecrypt({
-        handle,
-        contractAddress,
-        signer,
-      });
-
-      return decrypted;
+      // Decrypt using SDK (single or batch)
+      if (isSingle) {
+        const decrypted = await client.value.userDecrypt({
+          handle: handleOrHandles,
+          contractAddress,
+          signer,
+        });
+        return decrypted;
+      } else {
+        const decrypted = await client.value.userDecrypt({
+          handles: handleOrHandles,
+          contractAddress,
+          signer,
+        });
+        return decrypted;
+      }
     } catch (err) {
       const errorObj = err instanceof Error ? err : new Error('User decryption failed');
       error.value = errorObj;
@@ -88,7 +112,7 @@ export function useFhevmUserDecrypt({ contractAddress }: UseFhevmUserDecryptOpti
     } finally {
       isDecrypting.value = false;
     }
-  };
+  }
 
   return {
     decrypt,

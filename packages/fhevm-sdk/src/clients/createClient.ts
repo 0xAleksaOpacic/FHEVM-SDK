@@ -166,13 +166,14 @@ export function createClient(config: FhevmConfig): FhevmClient {
   }
   
   /**
-   * Performs user decryption on a single ciphertext handle
+   * Performs user-specific decryption requiring EIP-712 signature
+   * Supports both single and batch decryption
    * 
-   * @param params - Decryption parameters including handle, contractAddress, signer, and optional duration
-   * @returns The decrypted value
+   * @param params - Decryption parameters including handle(s), contractAddress, signer, and optional duration
+   * @returns The decrypted value(s) - single value or record based on input
    * @throws {FhevmError} If client is not initialized
    */
-  async function userDecrypt(params: UserDecryptParams): Promise<DecryptedValue> {
+  async function userDecrypt(params: UserDecryptParams): Promise<DecryptedValue | DecryptedValues> {
     if (!instance) {
       throw new FhevmError(
         ErrorCodes.NOT_INITIALIZED,

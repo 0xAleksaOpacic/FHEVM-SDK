@@ -41,6 +41,6 @@ export interface FhevmClient {
   getInstance(): FhevmInstance | undefined;
   isReady(): boolean;
   publicDecrypt(handles: string[]): Promise<DecryptedValues>;
-  userDecrypt(params: UserDecryptParams): Promise<DecryptedValue>;
+  userDecrypt(params: UserDecryptParams): Promise<DecryptedValue | DecryptedValues>;
 }
 

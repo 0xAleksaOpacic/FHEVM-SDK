@@ -20,5 +20,10 @@ export type UserDecryptParams = {
   contractAddress: string;
   signer: FhevmSigner;
   duration?: number;
+} | {
+  handles: string[];
+  contractAddress: string;
+  signer: FhevmSigner;
+  duration?: number;
 };
 

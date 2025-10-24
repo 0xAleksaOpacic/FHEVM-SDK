@@ -84,7 +84,7 @@ export async function createMockClient(
       return await publicDecrypt(instance, handles);
     },
     
-    async userDecrypt(params: UserDecryptParams): Promise<DecryptedValue> {
+    async userDecrypt(params: UserDecryptParams): Promise<DecryptedValue | DecryptedValues> {
       return await userDecrypt(instance, params);
     }
   };
