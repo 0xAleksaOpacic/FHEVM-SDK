@@ -5,6 +5,10 @@ import { useFhevm } from './useFhevm';
  * Composable for public decryption of encrypted values
  * Anyone can decrypt values that were marked as publicly decryptable
  * 
+ * Supports both single and batch decryption:
+ * - Single: `decrypt(handle)` → returns `bigint | boolean | string`
+ * - Batch: `decrypt([handle1, handle2])` → returns `Record<string, bigint | boolean | string>`
+ * 
  * @example
  * ```vue
  * <script setup>
@@ -12,7 +16,11 @@ import { useFhevm } from './useFhevm';
  * 
  * const { decrypt, isDecrypting, error } = useFhevmPublicDecrypt();
  * 
+ * // Single decryption
  * const value = await decrypt('0x123...');
+ * 
+ * // Batch decryption
+ * const values = await decrypt(['0x123...', '0x456...']);
  * </script>
  * ```
  */
@@ -21,7 +29,14 @@ export function useFhevmPublicDecrypt() {
   const isDecrypting = ref(false);
   const error = ref<Error | null>(null);
 
-  const decrypt = async (handle: string): Promise<bigint | boolean | string> => {
+  // Single handle overload
+  function decrypt(handle: string): Promise<bigint | boolean | string>;
+  // Batch handles overload
+  function decrypt(handles: string[]): Promise<Record<string, bigint | boolean | string>>;
+  // Implementation
+  async function decrypt(
+    handleOrHandles: string | string[]
+  ): Promise<bigint | boolean | string | Record<string, bigint | boolean | string>> {
     if (!isReady.value || !client.value) {
       throw new Error('FHEVM client is not ready');
     }
@@ -30,8 +45,16 @@ export function useFhevmPublicDecrypt() {
     error.value = null;
 
     try {
-      const decrypted = await client.value.publicDecrypt([handle]);
-      return decrypted[handle];
+      const isSingle = typeof handleOrHandles === 'string';
+      const handles = isSingle ? [handleOrHandles] : handleOrHandles;
+      
+      const decrypted = await client.value.publicDecrypt(handles);
+      
+      if (isSingle) {
+        return decrypted[handleOrHandles as string];
+      } else {
+        return decrypted;
+      }
     } catch (err) {
       const errorObj = err instanceof Error ? err : new Error('Public decryption failed');
       error.value = errorObj;
@@ -39,7 +62,7 @@ export function useFhevmPublicDecrypt() {
     } finally {
       isDecrypting.value = false;
     }
-  };
+  }
 
   return {
     decrypt,
