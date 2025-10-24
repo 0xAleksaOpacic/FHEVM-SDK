@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fhevm/vue-sdk": "workspace:*",
     "@vue-dapp/core": "^1.5.9",
     "@vue-dapp/modal": "^1.5.9",
     "ethers": "^6.15.0",

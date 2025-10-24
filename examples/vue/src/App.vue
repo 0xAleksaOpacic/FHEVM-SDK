@@ -1,12 +1,28 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { BrowserWalletConnector, useVueDapp } from '@vue-dapp/core';
 import { VueDappModal, useVueDappModal } from '@vue-dapp/modal';
+import { useFhevm, useFhevmEncrypt, useFhevmPublicDecrypt, useFhevmUserDecrypt, FhevmClientStatus } from '@fhevm/vue-sdk';
 import '@vue-dapp/modal/dist/style.css';
 import logo from './assets/logo.svg';
+import { NETWORK_MODE } from './config';
+import { LOCALHOST_COUNTER_ADDRESS } from './config/localhost';
+import { SEPOLIA_COUNTER_ADDRESS } from './config/sepolia';
+import { sendIncrementTx, getPublicCounterHandle, getUserCounterHandle } from '@/lib/contracts/counter';
 
 const { addConnectors, isConnected, wallet, disconnect } = useVueDapp();
 const { open } = useVueDappModal();
+
+// FHEVM client from plugin
+const { status, isReady, network } = useFhevm();
+
+// Contract address based on network
+const contractAddress = NETWORK_MODE === 'localhost' ? LOCALHOST_COUNTER_ADDRESS : SEPOLIA_COUNTER_ADDRESS;
+
+// Encryption and decryption hooks
+const { createInput } = useFhevmEncrypt({ contractAddress });
+const { decrypt: publicDecrypt } = useFhevmPublicDecrypt();
+const { decrypt: userDecrypt } = useFhevmUserDecrypt({ contractAddress });
 
 // Add wallet connectors on mount
 onMounted(() => {
@@ -20,19 +36,68 @@ const userValue = ref<string>('-');
 const publicValue = ref<string>('-');
 const loading = ref<string>('');
 const txStatus = ref<string>('');
-const fhevmReady = ref(true); // Hardcoded for now
 
-// Mock handlers (non-functional)
+// Computed status text
+const statusText = computed(() => {
+  if (status.value === FhevmClientStatus.LOADING) return 'Loading...';
+  if (status.value === FhevmClientStatus.READY) return 'Ready ✓';
+  if (status.value === FhevmClientStatus.ERROR) return 'Error';
+  return 'Idle';
+});
+
+// Handlers
 const handleIncrement = async (type: 'user' | 'public') => {
-  console.log(`Increment ${type} counter - Coming soon!`);
+  try {
+    loading.value = `increment-${type}`;
+    txStatus.value = '';
+
+    if (!wallet.address) {
+      throw new Error('Wallet not connected');
+    }
+
+    // Create encrypted input
+    const input = createInput(wallet.address);
+    input.add32(1);
+    const encrypted = await input.encrypt();
+
+    txStatus.value = '⏳ Sending transaction...';
+    await sendIncrementTx(encrypted.handles[0], encrypted.inputProof, type, NETWORK_MODE);
+
+    txStatus.value = `✓ ${type === 'public' ? 'Public' : 'User'} counter incremented!`;
+  } catch (error) {
+    console.error('Increment error:', error);
+    txStatus.value = `✗ Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+  } finally {
+    loading.value = '';
+  }
 };
 
 const handleDecryptUser = async () => {
-  console.log('Decrypt user value - Coming soon!');
+  try {
+    loading.value = 'decrypt-user';
+    const handle = await getUserCounterHandle(NETWORK_MODE);
+    const decryptedValue = await userDecrypt(handle, wallet);
+    userValue.value = decryptedValue.toString();
+  } catch (error) {
+    console.error('Decrypt user error:', error);
+    userValue.value = 'Error';
+  } finally {
+    loading.value = '';
+  }
 };
 
 const handleDecryptPublic = async () => {
-  console.log('Decrypt public value - Coming soon!');
+  try {
+    loading.value = 'decrypt-public';
+    const handle = await getPublicCounterHandle(NETWORK_MODE);
+    const decryptedValue = await publicDecrypt(handle);
+    publicValue.value = decryptedValue.toString();
+  } catch (error) {
+    console.error('Decrypt public error:', error);
+    publicValue.value = 'Error';
+  } finally {
+    loading.value = '';
+  }
 };
 
 // Connect/disconnect handlers
@@ -57,7 +122,7 @@ const handleConnectClick = () => {
         Build confidential applications with Fully Homomorphic Encryption
       </p>
       <p style="text-align: center; font-size: 0.875rem; opacity: 0.7; margin-top: 0.5rem">
-        Network: <strong>Localhost</strong>
+        Network: <strong>{{ network === 'localhost' ? 'Localhost' : 'Sepolia' }}</strong>
       </p>
       
       <!-- Wallet Connection -->
@@ -81,21 +146,18 @@ const handleConnectClick = () => {
         </div>
       </section>
 
-      <!-- FHEVM Status (Hardcoded for now) -->
+      <!-- FHEVM Status -->
       <section v-if="isConnected" class="section">
         <h2>2. FHEVM Initialization</h2>
         <div class="status-badge">
-          <span style="font-size: 1.25rem">
-            {{ fhevmReady ? '✓' : '⏳' }}
-          </span>
-          <span :class="fhevmReady ? 'status-ready' : 'status-loading'">
-            {{ fhevmReady ? 'Ready' : 'Loading...' }}
+          <span :class="isReady ? 'status-ready' : 'status-loading'">
+            {{ statusText }}
           </span>
         </div>
       </section>
 
       <!-- Counter Demo -->
-      <section v-if="isConnected && fhevmReady" class="section">
+      <section v-if="isConnected && isReady" class="section">
         <h2>3. Encrypted Counter Demo</h2>
         <p style="margin-bottom: 1.5rem; font-size: 0.95rem">
           Interact with encrypted data on the blockchain using FHE.
