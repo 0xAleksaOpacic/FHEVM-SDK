@@ -3,12 +3,21 @@ import type { UserDecryptParams, DecryptedValue, FhevmCacheType } from './types'
 import type { SignatureCacheStorage, CachedSignature } from '../../storage/types';
 import { createSessionStorage } from '../../storage/sessionStorage/db';
 import { createIndexedDBStorage } from '../../storage/indexedDB/db';
+import { createInMemoryStorage } from '../../storage/memory/db';
 
 /**
  * Get storage adapter based on cache type
  */
 function getSignatureStorage(cacheType?: FhevmCacheType): SignatureCacheStorage | null {
   if (!cacheType || cacheType === 'none') return null;
+  
+  // In Node.js, browser storage isn't available - use in-memory
+  const isNode = typeof globalThis !== 'undefined' && !('window' in globalThis);
+  if (isNode) {
+    return createInMemoryStorage();
+  }
+  
+  // Browser storage
   if (cacheType === 'session') return createSessionStorage();
   if (cacheType === 'persistent') return createIndexedDBStorage();
   return null;

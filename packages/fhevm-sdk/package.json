@@ -18,6 +18,10 @@
     "./mock": {
       "types": "./dist/clients/mock.d.ts",
       "import": "./dist/clients/mock.js"
+    },
+    "./node": {
+      "types": "./dist/index.node.d.ts",
+      "import": "./dist/index.node.js"
     }
   },
   "scripts": {
@@ -32,6 +36,9 @@
     "@zama-fhe/relayer-sdk": "^0.2.0",
     "@fhevm/mock-utils": "^0.1.0",
     "idb": "^8.0.3"
+  },
+  "peerDependencies": {
+    "ethers": "^6.0.0"
   },
   "devDependencies": {
     "@types/node": "^18.19.50",
