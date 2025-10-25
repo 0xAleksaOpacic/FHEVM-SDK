@@ -16,9 +16,47 @@ export type CachedPublicKey = {
 };
 
 /**
- * Storage adapter interface for caching FHEVM public data
+ * Cached signature data for user decryption
  */
-export type StorageAdapter = {
+export type CachedSignature = {
+  signature: string;
+  publicKey: string;
+  privateKey: string;
+  userAddress: string;
+  contractAddress: string;
+  chainId: number;
+  startTimestamp: number;
+  durationDays: number;
+  expiresAt: number;
+  cachedAt: number;
+};
+
+/**
+ * Storage adapter interface for signature caching
+ * Used by sessionStorage (signature-only) and full storage adapters
+ */
+export type SignatureCacheStorage = {
+  /**
+   * Get cached signature by key
+   */
+  getSignature(key: string): Promise<CachedSignature | null>;
+  
+  /**
+   * Cache signature by key
+   */
+  setSignature(key: string, signature: CachedSignature): Promise<void>;
+  
+  /**
+   * Clear only cached signatures
+   */
+  clearSignatures(): Promise<void>;
+};
+
+/**
+ * Full storage adapter interface for caching FHEVM data
+ * Extends SignatureCacheStorage and adds public key/params storage
+ */
+export type StorageAdapter = SignatureCacheStorage & {
   /**
    * Get cached public key for an ACL address
    */
@@ -47,8 +85,18 @@ export type StorageAdapter = {
   ): Promise<void>;
   
   /**
-   * Clear all cached public data
+   * Clear only cached public keys
    */
-  clearCache(): Promise<void>;
+  clearPublicKeys(): Promise<void>;
+  
+  /**
+   * Clear only cached public params
+   */
+  clearPublicParams(): Promise<void>;
+  
+  /**
+   * Clear all cached data (keys + params + signatures)
+   */
+  clearAll(): Promise<void>;
 };
 

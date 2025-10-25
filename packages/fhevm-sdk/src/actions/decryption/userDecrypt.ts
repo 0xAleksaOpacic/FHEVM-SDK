@@ -1,5 +1,25 @@
 import type { FhevmInstance } from '@zama-fhe/relayer-sdk/web';
-import type { UserDecryptParams, DecryptedValue } from './types';
+import type { UserDecryptParams, DecryptedValue, FhevmCacheType } from './types';
+import type { SignatureCacheStorage, CachedSignature } from '../../storage/types';
+import { createSessionStorage } from '../../storage/sessionStorage/db';
+import { createIndexedDBStorage } from '../../storage/indexedDB/db';
+
+/**
+ * Get storage adapter based on cache type
+ */
+function getSignatureStorage(cacheType?: FhevmCacheType): SignatureCacheStorage | null {
+  if (!cacheType || cacheType === 'none') return null;
+  if (cacheType === 'session') return createSessionStorage();
+  if (cacheType === 'persistent') return createIndexedDBStorage();
+  return null;
+}
+
+/**
+ * Generate cache key for signature storage
+ */
+function generateCacheKey(userAddress: string, chainId: number, contractAddress: string): string {
+  return `${userAddress.toLowerCase()}:${chainId}:${contractAddress.toLowerCase()}`;
+}
 
 /**
  * Performs user decryption on one or more ciphertext handles.
@@ -51,45 +71,106 @@ export async function userDecrypt(
   // Extract parameters (single or batch)
   const isSingle = 'handle' in params;
   const handles = isSingle ? [params.handle] : params.handles;
-  const { contractAddress, signer, duration = 7 } = params;
+  const { contractAddress, signer, duration = 7, cacheType } = params;
 
-  // Generate ephemeral keypair for this decryption request
-  const keypair = instance.generateKeypair();
+  const userAddress = signer.account.address;
+  const storage = getSignatureStorage(cacheType);
+  
+  // Variables that will be set from cache or generated
+  let keypair: { publicKey: string; privateKey: string };
+  let signature: string;
+  let startTimestamp: string;
+  let durationDays: string;
+
+  // Generate EIP-712 to get chainId
+  const tempKeypair = instance.generateKeypair();
+  const contractAddresses = [contractAddress];
+  const tempStartTimestamp = Math.floor(Date.now() / 1000).toString();
+  const tempDurationDays = duration.toString();
+
+  const eip712 = instance.createEIP712(
+    tempKeypair.publicKey,
+    contractAddresses,
+    tempStartTimestamp,
+    tempDurationDays
+  );
+
+  // Extract chainId from EIP-712 domain
+  const chainId = eip712.domain.chainId;
+
+  // Check cache
+  let cachedSig: CachedSignature | null = null;
+  
+  if (storage && chainId) {
+    const cacheKey = generateCacheKey(userAddress, chainId, contractAddress);
+    cachedSig = await storage.getSignature(cacheKey);
+    
+    // Validate cached signature
+    if (cachedSig && Date.now() > cachedSig.expiresAt) {
+      // Expired - clear it
+      await storage.clearSignatures();
+      cachedSig = null;
+    }
+  }
+
+  // Use cached or create new signature
+  if (cachedSig) {
+    // Reuse cached signature (no wallet popup!)
+    keypair = {
+      publicKey: cachedSig.publicKey,
+      privateKey: cachedSig.privateKey,
+    };
+    signature = cachedSig.signature;
+    startTimestamp = cachedSig.startTimestamp.toString();
+    durationDays = cachedSig.durationDays.toString();
+  } else {
+    // No cache - use the temp values we generated and sign
+    keypair = tempKeypair;
+    startTimestamp = tempStartTimestamp;
+    durationDays = tempDurationDays;
+
+    // Sign with Viem-compatible signer (ONE signature for all handles)
+    const signatureWithPrefix = await signer.signTypedData({
+      domain: eip712.domain,
+      types: eip712.types,
+      primaryType: 'UserDecryptRequestVerification',
+      message: eip712.message,
+    });
+    
+    signature = signatureWithPrefix.replace('0x', ''); // Strip 0x prefix for SDK
+
+    // Cache the new signature
+    if (storage && chainId) {
+      const cacheKey = generateCacheKey(userAddress, chainId, contractAddress);
+      const expiresAt = (parseInt(startTimestamp) + duration * 24 * 60 * 60) * 1000;
+      
+      await storage.setSignature(cacheKey, {
+        signature,
+        publicKey: keypair.publicKey,
+        privateKey: keypair.privateKey,
+        userAddress,
+        contractAddress,
+        chainId,
+        startTimestamp: parseInt(startTimestamp),
+        durationDays: duration,
+        expiresAt,
+        cachedAt: Date.now(),
+      });
+    }
+  }
 
   // Prepare request data for all handles
   const handleContractPairs = handles.map(h => ({ 
     handle: h, 
     contractAddress 
   }));
-  const contractAddresses = [contractAddress];
-  const startTimestamp = Math.floor(Date.now() / 1000).toString();
-  const durationDays = duration.toString();
-
-  // Create EIP-712 signature data (covers ALL handles)
-  const eip712 = instance.createEIP712(
-    keypair.publicKey,
-    contractAddresses,
-    startTimestamp,
-    durationDays
-  );
-
-  // Sign with Viem-compatible signer (ONE signature for all handles)
-  const signature = await signer.signTypedData({
-    domain: eip712.domain,
-    types: eip712.types,
-    primaryType: 'UserDecryptRequestVerification',
-    message: eip712.message,
-  });
-
-  // Get user address from signer
-  const userAddress = signer.account.address;
 
   // Call underlying SDK with all required parameters
   const result = await instance.userDecrypt(
     handleContractPairs,
     keypair.privateKey,
     keypair.publicKey,
-    signature.replace('0x', ''), // Strip 0x prefix for SDK
+    signature,
     contractAddresses,
     userAddress,
     startTimestamp,

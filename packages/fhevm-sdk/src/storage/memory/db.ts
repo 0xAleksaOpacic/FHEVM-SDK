@@ -1,7 +1,7 @@
-import type { StorageAdapter, CachedPublicKey, CachedPublicParams } from '../types';
+import type { StorageAdapter, CachedPublicKey, CachedPublicParams, CachedSignature } from '../types';
 
 /**
- * Create an in-memory storage adapter for FHEVM public data.
+ * Create an in-memory storage adapter for FHEVM data.
  * Useful for testing or environments where persistent storage is not available.
  * 
  * @returns In-memory storage adapter
@@ -9,6 +9,7 @@ import type { StorageAdapter, CachedPublicKey, CachedPublicParams } from '../typ
 export function createInMemoryStorage(): StorageAdapter {
   const keyCache = new Map<string, CachedPublicKey>();
   const paramsCache = new Map<string, Record<number, CachedPublicParams>>();
+  const signatureCache = new Map<string, CachedSignature>();
 
   return {
     async getPublicKey(aclAddress: string): Promise<CachedPublicKey | null> {
@@ -38,9 +39,30 @@ export function createInMemoryStorage(): StorageAdapter {
       paramsCache.set(aclAddress, publicParams);
     },
 
-    async clearCache(): Promise<void> {
+    async getSignature(key: string): Promise<CachedSignature | null> {
+      return signatureCache.get(key) || null;
+    },
+
+    async setSignature(key: string, signature: CachedSignature): Promise<void> {
+      signatureCache.set(key, signature);
+    },
+
+    async clearPublicKeys(): Promise<void> {
+      keyCache.clear();
+    },
+
+    async clearPublicParams(): Promise<void> {
+      paramsCache.clear();
+    },
+
+    async clearSignatures(): Promise<void> {
+      signatureCache.clear();
+    },
+
+    async clearAll(): Promise<void> {
       keyCache.clear();
       paramsCache.clear();
+      signatureCache.clear();
     },
   };
 }

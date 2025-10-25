@@ -1,6 +1,6 @@
 export { createFhevmPlugin } from './plugin';
 export { useFhevm, useFhevmEncrypt, useFhevmPublicDecrypt, useFhevmUserDecrypt } from './composables';
-export { FhevmClientStatus } from '@fhevm/sdk';
+export { FhevmClientStatus, FhevmCacheType } from '@fhevm/sdk';
 
 export type { FhevmPluginOptions, FhevmContext, NetworkMode } from './plugin';
 export type { UseFhevmEncryptOptions, UseFhevmUserDecryptOptions } from './composables';

@@ -2,6 +2,12 @@ export type DecryptedValue = bigint | boolean | string;
 
 export type DecryptedValues = Record<string, DecryptedValue>;
 
+export enum FhevmCacheType {
+  None = 'none',
+  Session = 'session',
+  Persistent = 'persistent',
+}
+
 export interface FhevmSigner {
   account: {
     address: string;
@@ -20,10 +26,12 @@ export type UserDecryptParams = {
   contractAddress: string;
   signer: FhevmSigner;
   duration?: number;
+  cacheType?: FhevmCacheType;
 } | {
   handles: string[];
   contractAddress: string;
   signer: FhevmSigner;
   duration?: number;
+  cacheType?: FhevmCacheType;
 };
 

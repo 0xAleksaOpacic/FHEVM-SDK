@@ -2,7 +2,7 @@ export { FhevmProvider } from './FhevmProvider';
 export { useFhevm, useFhevmEncrypt, useFhevmPublicDecrypt, useFhevmUserDecrypt } from './hooks';
 
 // Re-export from core SDK
-export { FhevmClientStatus } from '@fhevm/sdk';
+export { FhevmClientStatus, FhevmCacheType } from '@fhevm/sdk';
 
 export type { FhevmProviderProps } from './FhevmProvider';
 export type { FhevmContextValue, NetworkMode } from './FhevmContext';

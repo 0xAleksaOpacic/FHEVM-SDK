@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { BrowserWalletConnector, useVueDapp } from '@vue-dapp/core';
 import { VueDappModal, useVueDappModal } from '@vue-dapp/modal';
-import { useFhevm, useFhevmEncrypt, useFhevmPublicDecrypt, useFhevmUserDecrypt, FhevmClientStatus } from '@fhevm/vue-sdk';
+import { useFhevm, useFhevmEncrypt, useFhevmPublicDecrypt, useFhevmUserDecrypt, FhevmClientStatus, FhevmCacheType } from '@fhevm/vue-sdk';
 import '@vue-dapp/modal/dist/style.css';
 import logo from './assets/logo.svg';
 import { NETWORK_MODE } from './config';
@@ -22,7 +22,7 @@ const contractAddress = NETWORK_MODE === 'localhost' ? LOCALHOST_COUNTER_ADDRESS
 // Encryption and decryption hooks
 const { createInput } = useFhevmEncrypt({ contractAddress });
 const { decrypt: publicDecrypt } = useFhevmPublicDecrypt();
-const { decrypt: userDecrypt } = useFhevmUserDecrypt({ contractAddress });
+const { decrypt: userDecrypt, clearCache } = useFhevmUserDecrypt({ contractAddress, cacheType: FhevmCacheType.Persistent });
 
 // Add wallet connectors on mount
 onMounted(() => {
@@ -100,10 +100,17 @@ const handleDecryptPublic = async () => {
   }
 };
 
+// Disconnect handler with cache clearing
+const handleDisconnect = async () => {
+  // Clear signature cache on disconnect
+  await clearCache();
+  disconnect();
+};
+
 // Connect/disconnect handlers
 const handleConnectClick = () => {
   if (isConnected.value) {
-    disconnect();
+    handleDisconnect();
   } else {
     open();
   }

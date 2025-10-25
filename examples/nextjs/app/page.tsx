@@ -4,7 +4,7 @@ import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { useState } from 'react';
 import Image from 'next/image';
 import logo from './assets/logo.svg';
-import { useFhevm, useFhevmEncrypt, useFhevmPublicDecrypt, useFhevmUserDecrypt, FhevmClientStatus } from '@fhevm/react-sdk';
+import { useFhevm, useFhevmEncrypt, useFhevmPublicDecrypt, useFhevmUserDecrypt, FhevmClientStatus, FhevmCacheType } from '@fhevm/react-sdk';
 import {
   sendIncrementTx,
   getUserCounterHandle,
@@ -22,12 +22,18 @@ export default function Home() {
   const contractAddress = mode === 'localhost' ? LOCALHOST_COUNTER_ADDRESS : SEPOLIA_COUNTER_ADDRESS;
   const { createInput } = useFhevmEncrypt({ contractAddress });
   const { decrypt: publicDecrypt } = useFhevmPublicDecrypt();
-  const { decrypt: userDecrypt } = useFhevmUserDecrypt({ contractAddress });
+  const { decrypt: userDecrypt, clearCache } = useFhevmUserDecrypt({ contractAddress, cacheType: FhevmCacheType.Persistent });
 
   const [userValue, setUserValue] = useState<string>('-');
   const [publicValue, setPublicValue] = useState<string>('-');
   const [loading, setLoading] = useState<string>('');
   const [txStatus, setTxStatus] = useState<string>('');
+
+  const handleDisconnect = async () => {
+    // Clear signature cache on disconnect
+    await clearCache();
+    disconnect();
+  };
 
   const handleIncrement = async (type: 'user' | 'public') => {
     if (!client || !address) return;
@@ -117,7 +123,7 @@ export default function Home() {
                 <p style={{ marginBottom: '0.25rem', fontSize: '0.875rem', opacity: 0.7 }}>Connected Address</p>
                 <p className="wallet-address">{address?.slice(0, 8)}...{address?.slice(-6)}</p>
               </div>
-              <button onClick={() => disconnect()} className="btn-secondary">
+              <button onClick={handleDisconnect} className="btn-secondary">
                 Disconnect
               </button>
             </div>

@@ -1,12 +1,27 @@
 import { useState, useCallback } from 'react';
 import { useFhevm } from './useFhevm';
 import { useWalletClient } from 'wagmi';
+import { FhevmCacheType, createSessionStorage, createIndexedDBStorage } from '@fhevm/sdk';
 
 export interface UseFhevmUserDecryptOptions {
   /**
    * The contract address where the encrypted value is stored
    */
   contractAddress: string;
+  
+  /**
+   * Caching strategy for signatures
+   * - 'none': No caching, always request signature (default)
+   * - 'session': Cache until tab closes
+   * - 'persistent': Cache across sessions (expires after duration)
+   */
+  cacheType?: FhevmCacheType;
+  
+  /**
+   * Signature validity duration in days (default: 7)
+   * Only applies when cacheType is set
+   */
+  duration?: number;
 }
 
 /**
@@ -18,8 +33,16 @@ export interface UseFhevmUserDecryptOptions {
  * - Batch: `decrypt([handle1, handle2])` → returns `Record<string, bigint | boolean | string>`
  * 
  * For batch operations, only ONE signature is required for all handles!
+ * 
+ * Signature caching reduces wallet popups:
+ * - `cacheType: 'session'` - cached until tab closes
+ * - `cacheType: 'persistent'` - cached for `duration` days
  */
-export function useFhevmUserDecrypt({ contractAddress }: UseFhevmUserDecryptOptions) {
+export function useFhevmUserDecrypt({ 
+  contractAddress, 
+  cacheType, 
+  duration 
+}: UseFhevmUserDecryptOptions) {
   const { client, isReady } = useFhevm();
   const { data: walletClient } = useWalletClient();
   const [isDecrypting, setIsDecrypting] = useState(false);
@@ -72,6 +95,8 @@ export function useFhevmUserDecrypt({ contractAddress }: UseFhevmUserDecryptOpti
             handle: handleOrHandles,
             contractAddress,
             signer,
+            cacheType,
+            duration,
           });
           resolve(decrypted);
         } else {
@@ -79,6 +104,8 @@ export function useFhevmUserDecrypt({ contractAddress }: UseFhevmUserDecryptOpti
             handles: handleOrHandles,
             contractAddress,
             signer,
+            cacheType,
+            duration,
           });
           resolve(decrypted);
         }
@@ -92,8 +119,27 @@ export function useFhevmUserDecrypt({ contractAddress }: UseFhevmUserDecryptOpti
     });
   }
 
+  /**
+   * Clear all cached signatures
+   * Useful for logout or when user wants to invalidate cached signatures
+   */
+  const clearCache = useCallback(async () => {
+    if (!cacheType || cacheType === 'none') return;
+    
+    try {
+      const storage = cacheType === 'session' 
+        ? createSessionStorage() 
+        : createIndexedDBStorage();
+      
+      await storage.clearSignatures();
+    } catch (err) {
+      console.error('[useFhevmUserDecrypt] Failed to clear cache:', err);
+    }
+  }, [cacheType]);
+
   return {
     decrypt,
+    clearCache,
     isDecrypting,
     error,
   };
