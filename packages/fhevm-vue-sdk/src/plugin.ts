@@ -54,31 +54,37 @@ export function createFhevmPlugin(options: FhevmPluginOptions): Plugin {
           status.value = FhevmClientStatus.LOADING;
           onStatusChange?.(status.value);
 
-          // Get default config from SDK
-          const { localhost, sepolia } = await import('@fhevm/sdk');
-          const defaultConfig = network === 'localhost' ? localhost : sepolia;
-          
-          // Merge with user overrides
-          const finalConfig: FhevmInstanceConfig = {
-            ...defaultConfig,
-            ...chainConfig,
-          };
-
           let fhevmClient: any;
 
           if (network === 'localhost') {
             // Create mock client for localhost
             const { JsonRpcProvider } = await import('ethers');
             const { createMockClient } = await import('@fhevm/sdk/mock');
+            const { localhost } = await import('@fhevm/sdk');
+            
+            const finalConfig: FhevmInstanceConfig = {
+              ...localhost,
+              ...chainConfig,
+            };
             
             const provider = new JsonRpcProvider(rpcUrl);
             fhevmClient = await createMockClient(provider, finalConfig as any);
           } else {
             // Create real client for sepolia
-            const { createClient } = await import('@fhevm/sdk');
+            const { createClient, loadRelayerSDK } = await import('@fhevm/sdk');
             
+            // Load relayer SDK first to enable access to sepolia config
+            await loadRelayerSDK();
+            
+            // Now we can safely access sepolia config
+            const { sepolia } = await import('@fhevm/sdk');
+            const finalConfig: FhevmInstanceConfig = {
+              ...sepolia,
+              ...chainConfig,
+            };
+            
+            // SepoliaConfig already has network configured, no need to override
             fhevmClient = createClient({
-              provider: (window as any).ethereum as Eip1193Provider,
               chain: finalConfig,
               debug,
             });
@@ -91,6 +97,13 @@ export function createFhevmPlugin(options: FhevmPluginOptions): Plugin {
           onStatusChange?.(status.value);
         } catch (error) {
           const err = error instanceof Error ? error : new Error('Failed to initialize FHEVM client');
+          console.error('[FHEVM Plugin] Initialization failed:', err);
+          console.error('[FHEVM Plugin] Error stack:', err.stack);
+          console.error('[FHEVM Plugin] Error details:', {
+            message: err.message,
+            name: err.name,
+            cause: (err as any).cause,
+          });
           status.value = FhevmClientStatus.ERROR;
           onStatusChange?.(status.value);
           onError?.(err);

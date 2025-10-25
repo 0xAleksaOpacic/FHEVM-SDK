@@ -94,13 +94,15 @@ export function useFhevmUserDecrypt({
       const isSingle = typeof handleOrHandles === 'string';
 
       // Create signer adapter for vue-dapp wallet
+      const { BrowserProvider, getAddress } = await import('ethers');
+      const checksummedAddress = getAddress(wallet.address); // Ensure proper checksum
+      
       const signer = {
         account: {
-          address: wallet.address,
+          address: checksummedAddress,
         },
         signTypedData: async (args: any) => {
           // Use ethers to sign with vue-dapp's provider
-          const { BrowserProvider } = await import('ethers');
           const provider = new BrowserProvider((window as any).ethereum);
           const ethersSigner = await provider.getSigner();
           

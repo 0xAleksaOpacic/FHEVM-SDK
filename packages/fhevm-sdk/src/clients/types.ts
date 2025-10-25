@@ -8,9 +8,9 @@ export interface Eip1193Provider {
 
 export interface FhevmConfig {
   /**
-   * EIP-1193 provider or RPC URL
+   * EIP-1193 provider or RPC URL (optional if chain config already has network)
    */
-  provider: string | Eip1193Provider;
+  provider?: string | Eip1193Provider;
   /**
    * FHEVM chain configuration
    */

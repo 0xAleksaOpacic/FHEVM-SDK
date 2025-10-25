@@ -69,31 +69,38 @@ export function FhevmProvider({
         setClient(null);
         setStatus(FhevmClientStatus.LOADING);
 
-        // Get default config from SDK
-        const { localhost, sepolia } = await import('@fhevm/sdk');
-        const defaultConfig = network === 'localhost' ? localhost : sepolia;
-        
-        // Merge with user overrides
-        const finalConfig: FhevmInstanceConfig = {
-          ...defaultConfig,
-          ...chainConfig,
-        };
-
         let fhevmClient: any; // Mock client returns different type than standard client
 
         if (network === 'localhost') {
           // Create mock client for localhost
           const { JsonRpcProvider } = await import('ethers');
           const { createMockClient } = await import('@fhevm/sdk/mock');
+          const { localhost } = await import('@fhevm/sdk');
+          
+          const finalConfig: FhevmInstanceConfig = {
+            ...localhost,
+            ...chainConfig,
+          };
           
           const provider = new JsonRpcProvider(rpcUrl);
           fhevmClient = await createMockClient(provider, finalConfig as any);
         } else {
           // Create real client for sepolia
-          const { createClient } = await import('@fhevm/sdk');
+          const { createClient, loadRelayerSDK } = await import('@fhevm/sdk');
           
+          // Load relayer SDK first to enable access to sepolia config
+          await loadRelayerSDK();
+          
+          // Now we can safely access sepolia config
+          const { sepolia } = await import('@fhevm/sdk');
+
+          const finalConfig: FhevmInstanceConfig = {
+            ...sepolia,
+            ...chainConfig,
+          };
+          
+          // SepoliaConfig already has network configured, no need to override
           fhevmClient = createClient({
-            provider: (window as any).ethereum as Eip1193Provider,
             chain: finalConfig,
             debug,
           });

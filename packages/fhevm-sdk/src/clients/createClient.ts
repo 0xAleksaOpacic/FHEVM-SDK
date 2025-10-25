@@ -65,15 +65,22 @@ export function createClient(config: FhevmConfig): FhevmClient {
       }
 
       // Create instance with cached data if available
-      instance = await sdk.createInstance({
+      // Only override network if not already in config (e.g., for custom setups)
+      const createInstanceConfig: any = {
         ...instanceConfig,
-        network: config.provider,
         publicKey: cachedKey ? {
           data: cachedKey.publicKey,
           id: cachedKey.publicKeyId,
         } : undefined,
         publicParams: cachedParams || undefined,
-      });
+      };
+      
+      // Only set network if not already provided in instanceConfig
+      if (!instanceConfig.network && config.provider) {
+        createInstanceConfig.network = config.provider;
+      }
+      
+      instance = await sdk.createInstance(createInstanceConfig);
 
       // Save to cache if not cached
       if (!cachedKey) {

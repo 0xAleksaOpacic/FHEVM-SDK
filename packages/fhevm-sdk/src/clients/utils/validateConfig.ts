@@ -8,7 +8,10 @@ import { FhevmError, ErrorCodes, ClientErrorMessages } from '../../errors';
  * @throws {FhevmError} If required fields are missing or chain is unsupported.
  */
 export function validateConfig(config: FhevmConfig): void {
-  if (!config.provider) {
+  // Provider is only required if chain config doesn't already have network
+  const chainHasNetwork = config.chain && 'network' in config.chain && config.chain.network;
+  
+  if (!config.provider && !chainHasNetwork) {
     throw new FhevmError(
       ErrorCodes.INVALID_CONFIG,
       ClientErrorMessages.PROVIDER_REQUIRED

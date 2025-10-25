@@ -1,4 +1,5 @@
 export { createClient, FhevmClientStatus } from './clients';
+export { loadRelayerSDK } from './clients/utils/relayerLoader';
 export { FhevmError, ErrorCodes } from './errors';
 export { localhost, sepolia, chains, getChainById, isSupportedChain, getSupportedChainIds } from './chains';
 export { createIndexedDBStorage, createInMemoryStorage, createSessionStorage } from './storage';
