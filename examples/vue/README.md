@@ -1,57 +1,56 @@
 # FHEVM Vue Example
 
-A Vue 3 + TypeScript demo application showcasing Fully Homomorphic Encryption (FHE) on the blockchain.
+This Vue 3 project is an example dapp for Vue applications. It shows how to use [@fhevm/vue-sdk](../../packages/fhevm-vue-sdk/) in a Vue app to initialize the FHEVM plugin, use composables for encryption and decryption, and interact with the [`FHECounter` contract](../../packages/hardhat/contracts/FHECounter.sol). It works out of the box on `localhost` and `sepolia`.
 
-## Features
+This example uses [ethers](https://docs.ethers.org/v6/) for contract interactions.
 
-- 🔐 Wallet connection with [vue-dapp](https://github.com/ethaccount/vue-dapp)
-- ⚡ Vue 3 Composition API
-- 📦 TypeScript support
-- 🎨 Zama-inspired design
-- 🔌 Multiple wallet support (MetaMask, WalletConnect, Coinbase)
+## 🚀 Running the example
 
-## Getting Started
+> **Localhost works out of the box**
+> If you want to run it on localhost, just do (from root):
+> 
+> ```bash
+> # Run local hardhat node with all contracts
+> pnpm chain 
+> # Run example
+> pnpm vue-example
+> ```
+> 
+> Make sure to check the MetaMask localhost setup: [`docs/metamask-localhost.md`](../../docs/metamask-localhost.md)
+> Use a single wallet extension for reliable detection.
+
+### Config
+
+Create `.env.local` in this folder based on [`env.example`](./env.example).
+
+To run on Sepolia network set:
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Start development server
-pnpm dev
+VITE_NETWORK_MODE=sepolia
 ```
 
-## Project Structure
+Ensure MetaMask is on Sepolia. See [`docs/metamask-sepolia.md`](../../docs/metamask-sepolia.md).
+
+> **📌 Note**  
+> By default this example uses a pre-deployed [`FHECounter` contract](../../packages/hardhat/contracts/FHECounter.sol) at `0x6134E9810A204661eaB5a189A44BB7F1CB2a4196` with RPC `https://ethereum-sepolia-rpc.publicnode.com`.
+
+To replace any contract address or RPC, see all variables in [`env.example`](./env.example).
+
+## 📁 Folder structure
 
 ```
-src/
-├── App.vue            # Main component
-├── main.ts            # App entry point (Pinia + Vue setup)
-├── assets/            # Static assets (logo, etc)
-└── style.css          # Global styles
+examples/vue/
+├── src/
+│   ├── App.vue                # Uses composables for encryption and decryption
+│   ├── main.ts                # Installs FHEVM plugin
+│   ├── config/                # Configuration and default values (mode, RPC, addresses)
+│   │   ├── index.ts
+│   │   ├── localhost.ts
+│   │   └── sepolia.ts
+│   └── lib/
+│       └── contracts/
+│           └── counter.ts     # Contract interaction helpers
+├── env.example                # All supported variables and defaults
+├── vite.config.ts             # Vite config for WASM and deps
+└── package.json
 ```
-
-## Wallet Integration
-
-This example uses [vue-dapp](https://github.com/ethaccount/vue-dapp), which provides:
-
-- 🔌 Easy wallet connection (similar to wagmi for React)
-- 🎨 Built-in wallet modal
-- 🔄 Auto-connect on page reload
-- ✅ Proper disconnect functionality
-- 📱 Multiple wallet support
-
-## Status
-
-This is a UI shell with wallet connection only. FHEVM functionality will be added once `@fhevm/vue-sdk` is ready.
-
-## Coming Soon
-
-- `@fhevm/vue-sdk` integration
-- Encrypted counter demo
-- User & public decryption
-
-## Dependencies
-
-- **vue-dapp**: Wallet connection library
-- **pinia**: State management (required by vue-dapp)
-- **ethers**: Ethereum library (for future FHEVM integration)

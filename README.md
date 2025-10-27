@@ -1,165 +1,157 @@
-# FHEVM React Template
+# FHEVM SDK
 
-A minimal React frontend template for building FHEVM-enabled decentralized applications (dApps). This template provides a simple development interface for interacting with FHEVM smart contracts, specifically the `FHECounter.sol` contract.
+Collection of TypeScript SDKs for building dapps with Zama's FHEVM (Fully Homomorphic Encryption Virtual Machine), enabling smart contracts to compute on encrypted data with controlled decryption on Ethereum.
 
-## 🚀 What is FHEVM?
+Includes three npm packages (`@fhevm/sdk`, `@fhevm/react-sdk`, `@fhevm/vue-sdk`) and working example dapps ([Next.js](./examples/nextjs), [Vue](./examples/vue), [Node.js CLI](./examples/nodejs)) demonstrating SDK usage with the [FHECounter contract](./packages/hardhat/contracts/FHECounter.sol) on localhost and Sepolia.
 
-FHEVM (Fully Homomorphic Encryption Virtual Machine) enables computation on encrypted data directly on Ethereum. This template demonstrates how to build dApps that can perform computations while keeping data private.
+> **💡 Quick Testing**  
+> Want to try the examples immediately? Skip to [Getting Started](#-getting-started) to run Next.js, Vue, or Node.js demos.
 
-## ✨ Features
+## 🧩 Architecture
 
-- **🔐 FHEVM Integration**: Built-in support for fully homomorphic encryption
-- **⚛️ React + Next.js**: Modern, performant frontend framework
-- **🎨 Tailwind CSS**: Utility-first styling for rapid UI development
-- **🔗 RainbowKit**: Seamless wallet connection and management
-- **🌐 Multi-Network Support**: Works on both Sepolia testnet and local Hardhat node
-- **📦 Monorepo Structure**: Organized packages for SDK, contracts, and frontend
+<p align="center">
+  <img src="./docs/images/fhevm-sdks.png" alt="FHEVM-SDKS" width="60%">
+</p>
 
-## 📋 Prerequinextjss
+## 📦 Packages
 
-Before you begin, ensure you have:
+### [`@fhevm/sdk`](./packages/fhevm-sdk)
+Core framework-agnostic SDK. Use this if you're building with vanilla JS, custom frameworks, or need Node.js support. Handles FHEVM client initialization, encryption, and decryption.
 
-- **Node.js** (v18 or higher)
-- **pnpm** package manager
-- **MetaMask** browser extension
-- **Git** for cloning the repository
+### [`@fhevm/react-sdk`](./packages/fhevm-react-sdk)
+React provider and hooks for Next.js and React apps. Use this for React projects to reduce boilerplate by ~60-85%. Includes `FhevmProvider` and set of hooks for encryption and decryption.
 
-## 🛠️ Quick Start
+### [`@fhevm/vue-sdk`](./packages/fhevm-vue-sdk)
+Vue composables and plugin for Vue 3 apps. Use this for Vue projects to simplify FHEVM integration. Includes plugin and composables for encryption and decryption.
 
-### 1. Clone and Setup
+## 📁 Repository Structure
+
+This monorepo contains SDKs, examples, and local development infrastructure:
+
+```
+fhevm-sdk/
+├── packages/
+│   ├── fhevm-sdk/          # Core SDK (@fhevm/sdk)
+│   ├── fhevm-react-sdk/    # React SDK (@fhevm/react-sdk)
+│   ├── fhevm-vue-sdk/      # Vue SDK (@fhevm/vue-sdk)
+│   └── hardhat/            # Local network and contracts
+└── examples/
+    ├── nextjs/             # Next.js example dapp
+    ├── vue/                # Vue example dapp
+    └── nodejs/             # Node.js CLI example
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+`Node.js v20+`, `pnpm`, `MetaMask` (for browser examples)
+
+### Installation
 
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd fhevm-react-template
+cd fhevm-sdk
 
-# Initialize submodules (includes fhevm-hardhat-template)
+# Initialize Hardhat submodule (local network and contracts)
 git submodule update --init --recursive
 
-# Install dependencies
-pnpm install
+# Install dependencies and build all SDK packages
+pnpm install && pnpm build
 ```
 
-### 2. Environment Configuration
+### Network Setup
 
-Set up your Hardhat environment variables by following the [FHEVM documentation](https://docs.zama.ai/protocol/solidity-guides/getting-started/setup#set-up-the-hardhat-configuration-variables-optional):
+The example dapps support two network modes. Choose one below:
 
-- `MNEMONIC`: Your wallet mnemonic phrase
-- `INFURA_API_KEY`: Your Infura API key for Sepolia
+- **[Localhost Setup](#localhost-setup)** - Run with local Hardhat node (recommended for testing)
+- **[Sepolia Setup](#sepolia-setup)** - Deploy and run on Sepolia testnet
 
-### 3. Start Development Environment
+### Localhost Setup
 
-**Option A: Local Development (Recommended for testing)**
+Run examples with a local Hardhat node. Contract addresses are deterministic, so examples work out of the box.
+
+#### 1. Start Hardhat Node
 
 ```bash
-# Terminal 1: Start local Hardhat node
 pnpm chain
-# RPC URL: http://127.0.0.1:8545 | Chain ID: 31337
-
-# Terminal 2: Deploy contracts to localhost
-pnpm deploy:localhost
-
-# Terminal 3: Start the frontend
-pnpm start
 ```
 
-**Option B: Sepolia Testnet**
+This starts a local Hardhat node on `http://127.0.0.1:8545` (Chain ID: `31337`) and deploys all FHEVM contracts. The FHECounter contract deploys to `0x5FbDB2315678afecb367f032d93F642f64180aa3`.
+
+#### 2. Configure MetaMask
+
+> **⚠️ Important**  
+> Disable all other wallet extensions (Coinbase Wallet, Rabby, etc.) before using the examples. Multi-wallet support will be added in future releases.
+
+Add the Hardhat network and import a test account. See [MetaMask Localhost Setup](./docs/metamask-localhost.md) for detailed instructions with screenshots.
+
+### Sepolia Setup
+
+Run examples on Sepolia testnet with a pre-deployed [FHECounter contract](./packages/hardhat/contracts/FHECounter.sol) or deploy your own.
+
+> **📌 Pre-deployed Contract**  
+> Contract address: `0x6134E9810A204661eaB5a189A44BB7F1CB2a4196`  
+> Free RPC: `https://ethereum-sepolia-rpc.publicnode.com`
+
+#### 1. Configure Environment Variables
+
+Create `.env.local` (Next.js/Vue) or `.env` (Node.js) from `env.example` in your chosen example directory:
 
 ```bash
-# Deploy to Sepolia testnet
-pnpm deploy:sepolia
+## Next.js (`examples/nextjs/.env.local`):
+NEXT_PUBLIC_NETWORK_MODE=sepolia
 
-# Start the frontend
-pnpm start
+## Vue (`examples/vue/.env.local`):
+VITE_NETWORK_MODE=sepolia
+
+## Node.js (`examples/nodejs/.env`):
+NETWORK_MODE=sepolia
+PRIVATE_KEY=your_private_key_here
 ```
 
-### 4. Connect MetaMask
+> **⚠️ Node.js requires PRIVATE_KEY**  
+> Unlike browser examples that use MetaMask, Node.js needs a private key for signing transactions.
 
-1. Open [http://localhost:3000](http://localhost:3000) in your browser
-2. Click "Connect Wallet" and select MetaMask
-3. If using localhost, add the Hardhat network to MetaMask:
-   - **Network Name**: Hardhat Local
-   - **RPC URL**: `http://127.0.0.1:8545`
-   - **Chain ID**: `31337`
-   - **Currency Symbol**: `ETH`
+See `.env.example` files for optional overrides (custom RPC URL, custom contract address).
 
-### ⚠️ Sepolia Production note
+#### 2. Configure MetaMask
 
-- In production, `NEXT_PUBLIC_ALCHEMY_API_KEY` must be set (see `packages/nextjs/scaffold.config.ts`). The app throws if missing.
-- Ensure `packages/nextjs/contracts/deployedContracts.ts` points to your live contract addresses.
-- Optional: set `NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID` for better WalletConnect reliability.
-- Optional: add per-chain RPCs via `rpcOverrides` in `packages/nextjs/scaffold.config.ts`.
+> **⚠️ Important**  
+> Set MetaMask to Sepolia testnet only. Multi-network support will be added in future releases.
 
-## 🔧 Troubleshooting
+Switch MetaMask to Sepolia and ensure you have test ETH. See [MetaMask Sepolia Setup](./docs/metamask-sepolia.md) for detailed instructions.
 
-### Common MetaMask + Hardhat Issues
+#### Optional: Deploy Your Own Contract
 
-When developing with MetaMask and Hardhat, you may encounter these common issues:
+// TODO
 
-#### ❌ Nonce Mismatch Error
+### Running Examples
 
-**Problem**: MetaMask tracks transaction nonces, but when you restart Hardhat, the node resets while MetaMask doesn't update its tracking.
+After completing either [Localhost Setup](#localhost-setup) or [Sepolia Setup](#sepolia-setup), run the examples:
 
-**Solution**:
-1. Open MetaMask extension
-2. Select the Hardhat network
-3. Go to **Settings** → **Advanced**
-4. Click **"Clear Activity Tab"** (red button)
-5. This resets MetaMask's nonce tracking
-
-#### ❌ Cached View Function Results
-
-**Problem**: MetaMask caches smart contract view function results. After restarting Hardhat, you may see outdated data.
-
-**Solution**:
-1. **Restart your entire browser** (not just refresh the page)
-2. MetaMask's cache is stored in extension memory and requires a full browser restart to clear
-
-> 💡 **Pro Tip**: Always restart your browser after restarting Hardhat to avoid cache issues.
-
-For more details, see the [MetaMask development guide](https://docs.metamask.io/wallet/how-to/run-devnet/).
-
-## 📁 Project Structure
-
-This template uses a monorepo structure with three main packages:
-
-```
-fhevm-react-template/
-├── packages/
-│   ├── fhevm-hardhat-template/    # Smart contracts & deployment
-│   ├── fhevm-sdk/                 # FHEVM SDK package
-│   └── nextjs/                      # React frontend application
-└── scripts/                       # Build and deployment scripts
+**Node.js CLI:**
+```bash
+pnpm nodejs-example
 ```
 
-### Key Components
+**Next.js:**
+```bash
+pnpm nextjs-example
+```
 
-#### 🔗 FHEVM Integration (`packages/nextjs/hooks/fhecounter-example/`)
-- **`useFHECounterWagmi.tsx`**: Example hook demonstrating FHEVM contract interaction
-- Essential hooks for FHEVM-enabled smart contract communication
-- Easily copyable to any FHEVM + React project
-
-#### 🎣 Wallet Management (`packages/nextjs/hooks/helper/`)
-- MetaMask wallet provider hooks
-- Compatible with EIP-6963 standard
-- Easily adaptable for other wallet providers
-
-#### 🔧 Flexibility
-- Replace `ethers.js` with `Wagmi` or other React-friendly libraries
-- Modular architecture for easy customization
-- Support for multiple wallet providers
+**Vue:**
+```bash
+pnpm vue-example
+```
 
 ## 📚 Additional Resources
 
 ### Official Documentation
 - [FHEVM Documentation](https://docs.zama.ai/protocol/solidity-guides/) - Complete FHEVM guide
 - [FHEVM Hardhat Guide](https://docs.zama.ai/protocol/solidity-guides/development-guide/hardhat) - Hardhat integration
-- [Relayer SDK Documentation](https://docs.zama.ai/protocol/relayer-sdk-guides/) - SDK reference
-- [Environment Setup](https://docs.zama.ai/protocol/solidity-guides/getting-started/setup#set-up-the-hardhat-configuration-variables-optional) - MNEMONIC & API keys
-
-### Development Tools
-- [MetaMask + Hardhat Setup](https://docs.metamask.io/wallet/how-to/run-devnet/) - Local development
-- [React Documentation](https://reactjs.org/) - React framework guide
+- [Relayer SDK Documentation](https://docs.zama.ai/protocol/relayer-sdk-guides/) - Relayer SDK reference
 
 ### Community & Support
 - [FHEVM Discord](https://discord.com/invite/zama) - Community support

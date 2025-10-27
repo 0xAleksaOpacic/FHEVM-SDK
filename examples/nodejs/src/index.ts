@@ -1,23 +1,8 @@
-import 'dotenv/config';
 import { createNodeClient, sepolia, localhost } from '@fhevm/sdk/node';
 import { createMockClient } from '@fhevm/sdk/mock';
 import { JsonRpcProvider, Wallet, Contract } from 'ethers';
-
-// Configuration from environment
-const NETWORK_MODE = (process.env.NETWORK_MODE || 'localhost') as 'localhost' | 'sepolia';
-const RPC_URL = NETWORK_MODE === 'sepolia' 
-  ? process.env.SEPOLIA_RPC_URL 
-  : process.env.LOCALHOST_RPC_URL || 'http://127.0.0.1:8545';
-const CONTRACT_ADDRESS = NETWORK_MODE === 'sepolia'
-  ? process.env.SEPOLIA_COUNTER_ADDRESS
-  : process.env.LOCALHOST_COUNTER_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3';
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
-
-// Contract ABI (from Next.js example)
-const COUNTER_ABI = [
-  'function incrementPublic(bytes32 inputHandle, bytes inputProof) external',
-  'function getPublicCount() external view returns (uint256)',
-];
+import { NETWORK_MODE, RPC_URL, CONTRACT_ADDRESS, PRIVATE_KEY, COUNTER_ABI } from './config';
+import { validateSepoliaConfig } from './validator';
 
 async function main() {
   console.log('');
@@ -28,21 +13,8 @@ async function main() {
   console.log(`📝 Contract: ${CONTRACT_ADDRESS}`);
   console.log('');
 
-  // Validate config
-  if (!PRIVATE_KEY) {
-    console.error('❌ Error: PRIVATE_KEY not set in .env');
-    process.exit(1);
-  }
-
-  if (!RPC_URL) {
-    console.error('❌ Error: RPC_URL not set in .env');
-    process.exit(1);
-  }
-
-  if (!CONTRACT_ADDRESS) {
-    console.error('❌ Error: CONTRACT_ADDRESS not set in .env');
-    process.exit(1);
-  }
+  // Validate config (only required for Sepolia)
+  validateSepoliaConfig(NETWORK_MODE);
 
   // 1. Setup provider
   const provider = new JsonRpcProvider(RPC_URL);
@@ -54,7 +26,7 @@ async function main() {
   
   if (NETWORK_MODE === 'localhost') {
     // Use mock client for localhost (no real FHE)
-    fhevmClient = await createMockClient(provider, localhost);
+    fhevmClient = await createMockClient(provider, localhost as any);
   } else {
     // Use real client for Sepolia
     fhevmClient = createNodeClient({
