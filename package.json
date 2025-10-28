@@ -13,11 +13,12 @@
     ]
   },
   "scripts": {
-    "build": "pnpm sdk:build && pnpm react-sdk:build && pnpm vue-sdk:build && pnpm nextjs:build",
+    "build": "pnpm sdk:build && pnpm react-sdk:build && pnpm vue-sdk:build && pnpm nextjs:build && pnpm vue:build",
     "sdk:build": "pnpm --filter ./packages/fhevm-sdk build",
     "react-sdk:build": "pnpm --filter ./packages/fhevm-react-sdk build",
     "vue-sdk:build": "pnpm --filter ./packages/fhevm-vue-sdk build",
     "nextjs:build": "pnpm --filter ./examples/nextjs build",
+    "vue:build": "pnpm --filter ./examples/vue build",
 
     "chain": "cd packages/hardhat && npx hardhat node",
     "nextjs-example": "pnpm --filter ./examples/nextjs dev",
