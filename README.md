@@ -10,7 +10,7 @@ Includes three npm packages (`@fhevm/sdk`, `@fhevm/react-sdk`, `@fhevm/vue-sdk`)
 ## 🧩 Architecture
 
 <p align="center">
-  <img src="./docs/images/fhevm-sdks.png" alt="FHEVM-SDKS" width="60%">
+  <img src="./docs/images/fhevm-sdks.png" alt="FHEVM-SDKS" width="100%">
 </p>
 
 ## 📦 Packages

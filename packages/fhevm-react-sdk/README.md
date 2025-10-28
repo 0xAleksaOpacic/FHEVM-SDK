@@ -13,7 +13,7 @@ pnpm add @fhevm/react-sdk
 ## 🧩 Architecture
 
 <p align="center">
-  <img src="./docs/images/react-sdk.png" alt="FHEVM-REACT-SDKS" width="60%">
+  <img src="./docs/images/react-sdk.png" alt="FHEVM-REACT-SDKS" width="100%">
 </p>
 
 ## 🚀 Quick Start

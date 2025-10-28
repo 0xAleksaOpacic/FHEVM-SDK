@@ -13,7 +13,7 @@ pnpm add @fhevm/vue-sdk
 ## 🧩 Architecture
 
 <p align="center">
-  <img src="./docs/images/vue-sdk.png" alt="FHEVM-VUE-SDKS" width="60%">
+  <img src="./docs/images/vue-sdk.png" alt="FHEVM-VUE-SDKS" width="100%">
 </p>
 
 
