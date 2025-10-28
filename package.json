@@ -22,6 +22,6 @@
     "chain": "cd packages/hardhat && npx hardhat node",
     "nextjs-example": "pnpm --filter ./examples/nextjs dev",
     "vue-example": "pnpm --filter ./examples/vue build && pnpm --filter ./examples/vue preview",
-    "nodejs-example": "pnpm --filter ./examples/nodejs start",
+    "nodejs-example": "pnpm --filter ./examples/nodejs start"
   }
 }
