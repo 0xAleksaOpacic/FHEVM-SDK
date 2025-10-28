@@ -5,7 +5,11 @@ Collection of TypeScript SDKs for building dapps with Zama's FHEVM (Fully Homomo
 Includes three npm packages (`@fhevm/sdk`, `@fhevm/react-sdk`, `@fhevm/vue-sdk`) and working example dapps ([Next.js](./examples/nextjs), [Vue](./examples/vue), [Node.js CLI](./examples/nodejs)) demonstrating SDK usage with the [FHECounter contract](./packages/hardhat/contracts/FHECounter.sol) on localhost and Sepolia.
 
 > **💡 Quick Testing**  
-> Want to try the examples immediately? Skip to [Getting Started](#-getting-started) to run Next.js, Vue, or Node.js demos.
+> Try the live demos on Sepolia testnet:
+> - **Next.js Example**: [fhevm-sdk-nextjs-example.vercel.app](https://fhevm-sdk-nextjs-example.vercel.app/)
+> - **Vue Example**: [fhevm-sdk-vue-example.vercel.app](https://fhevm-sdk-vue-example.vercel.app/)
+> 
+> Or skip to [Getting Started](#-getting-started) to run locally.
 
 ## 🧩 Architecture
 

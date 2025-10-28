@@ -4,6 +4,8 @@ This Vue 3 project is an example dapp for Vue applications. It shows how to use 
 
 This example uses [ethers](https://docs.ethers.org/v6/) for contract interactions.
 
+**🌐 Live Demo**: [fhevm-sdk-vue-example.vercel.app](https://fhevm-sdk-vue-example.vercel.app/)
+
 ## 🚀 Running the example
 
 > **Localhost works out of the box**

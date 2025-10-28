@@ -2,7 +2,9 @@
 
 This Next.js project is an example dapp for React applications. It shows how to use [@fhevm/react-sdk](../../packages/fhevm-react-sdk/) in a React app to initialize `FhevmProvider`, use hooks for encryption and decryption, and interact with the [`FHECounter` contract](../../packages/hardhat/contracts/FHECounter.sol). It works out of the box on `localhost` and `sepolia`.
 
-This example uses [wagmi](https://wagmi.sh) for wallet connections and [ethers](https://docs.ethers.org/v6/) for contract interactions
+This example uses [wagmi](https://wagmi.sh) for wallet connections and [ethers](https://docs.ethers.org/v6/) for contract interactions.
+
+**🌐 Live Demo**: [fhevm-sdk-nextjs-example.vercel.app](https://fhevm-sdk-nextjs-example.vercel.app/)
 
 ## 🚀 Running the example
 
