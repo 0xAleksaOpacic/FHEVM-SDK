@@ -1,3 +1,8 @@
+import { initFhevmPolyfills } from '@fhevm/vue-sdk';
+
+// Initialize polyfills before any other imports
+initFhevmPolyfills();
+
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import { createFhevmPlugin } from '@fhevm/vue-sdk';

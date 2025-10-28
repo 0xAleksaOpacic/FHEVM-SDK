@@ -19,6 +19,21 @@ pnpm add @fhevm/vue-sdk
 
 ## 🚀 Quick Start
 
+**Step 1:** Initialize polyfills in your `main.ts`:
+
+```typescript
+import { initFhevmPolyfills } from '@fhevm/vue-sdk';
+
+// Initialize polyfills before any other imports
+initFhevmPolyfills();
+
+import { createApp } from 'vue';
+import { createFhevmPlugin } from '@fhevm/vue-sdk';
+// ... rest of your imports
+```
+
+**Step 2:** Use composables in your components:
+
 ```vue
 <script setup lang="ts">
 import { useFhevmEncrypt, useFhevmUserDecrypt } from '@fhevm/vue-sdk';

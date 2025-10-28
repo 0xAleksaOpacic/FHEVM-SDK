@@ -171,6 +171,9 @@ importers:
       '@fhevm/sdk':
         specifier: workspace:*
         version: link:../fhevm-sdk
+      buffer:
+        specifier: ^6.0.3
+        version: 6.0.3
     devDependencies:
       '@types/node':
         specifier: ^18.19.50

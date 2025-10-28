@@ -42,7 +42,7 @@ To replace any contract address or RPC, see all variables in [`env.example`](./e
 examples/vue/
 ├── src/
 │   ├── App.vue                # Uses composables for encryption and decryption
-│   ├── main.ts                # Installs FHEVM plugin
+│   ├── main.ts                # Initializes polyfills and installs FHEVM plugin
 │   ├── config/                # Configuration and default values (mode, RPC, addresses)
 │   │   ├── index.ts
 │   │   ├── localhost.ts
