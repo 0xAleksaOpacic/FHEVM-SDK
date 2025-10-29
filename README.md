@@ -152,6 +152,10 @@ pnpm vue-example
 
 ## 📚 Additional Resources
 
+### Project Documentation
+- [Roadmap](./docs/roadmap.md) - Planned features and improvements
+- [Deploy to Sepolia](./docs/deploy-sepolia.md) - Deploy your own FHECounter contract
+
 ### Official Documentation
 - [FHEVM Documentation](https://docs.zama.ai/protocol/solidity-guides/) - Complete FHEVM guide
 - [FHEVM Hardhat Guide](https://docs.zama.ai/protocol/solidity-guides/development-guide/hardhat) - Hardhat integration
@@ -159,7 +163,7 @@ pnpm vue-example
 
 ### Community & Support
 - [FHEVM Discord](https://discord.com/invite/zama) - Community support
-- [GitHub Issues](https://github.com/zama-ai/fhevm-react-template/issues) - Bug reports & feature requests
+- [GitHub Issues](https://github.com/0xAleksaOpacic/FHEVM-SDK/issues) - Bug reports & feature requests
 
 ## 📄 License
 

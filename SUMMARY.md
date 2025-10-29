@@ -1,6 +1,7 @@
 # Table of contents
 
 * [Introduction](README.md)
+* [Roadmap](docs/roadmap.md)
 
 ## Packages
 
