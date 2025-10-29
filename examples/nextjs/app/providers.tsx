@@ -1,7 +1,7 @@
 'use client';
 
 import { WagmiProvider, createConfig, http } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
+import { mainnet, sepolia, localhost } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { injected } from 'wagmi/connectors';
 import { ReactNode } from 'react';
@@ -10,12 +10,14 @@ import { NETWORK_MODE } from '@/config';
 import { LOCALHOST_RPC_URL } from '@/config/localhost';
 import { SEPOLIA_RPC_URL } from '@/config/sepolia';
 
-// Wagmi config
+// Wagmi config - include multiple chains so we can detect which network user is on
 const config = createConfig({
-  chains: [sepolia],
+  chains: [sepolia, localhost, mainnet],
   connectors: [injected()],
   transports: {
     [sepolia.id]: http(),
+    [localhost.id]: http(),
+    [mainnet.id]: http(),
   },
 });
 

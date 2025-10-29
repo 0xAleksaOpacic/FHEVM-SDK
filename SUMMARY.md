@@ -36,3 +36,4 @@
 
 * [MetaMask Setup (Localhost)](docs/metamask-localhost.md)
 * [MetaMask Setup (Sepolia)](docs/metamask-sepolia.md)
+* [Troubleshooting: Wrong Network](docs/metamask-sepolia-connection.md)

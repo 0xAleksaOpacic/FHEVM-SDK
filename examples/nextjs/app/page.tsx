@@ -12,7 +12,7 @@ import { LOCALHOST_COUNTER_ADDRESS } from '@/config/localhost';
 import { SEPOLIA_COUNTER_ADDRESS } from '@/config/sepolia';
 
 export default function Home() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const { client, status, isReady, network: mode } = useFhevm();
@@ -26,6 +26,11 @@ export default function Home() {
   const [publicValue, setPublicValue] = useState<string>('-');
   const [loading, setLoading] = useState<string>('');
   const [txStatus, setTxStatus] = useState<string>('');
+
+  // Network validation
+  const expectedChainId = mode === 'localhost' ? 31337 : 11155111; // Localhost: 31337, Sepolia: 11155111
+  const isWrongNetwork = isConnected && chain && chain.id !== expectedChainId;
+  const expectedNetworkName = mode === 'localhost' ? 'Localhost (31337)' : 'Sepolia Testnet';
 
   const handleDisconnect = async () => {
     // Clear signature cache on disconnect
@@ -131,8 +136,35 @@ export default function Home() {
           )}
         </section>
 
+        {/* Wrong Network Warning */}
+        {isWrongNetwork && (
+          <div style={{
+            padding: '1rem',
+            marginBottom: '1.5rem',
+            backgroundColor: 'rgba(244, 67, 54, 0.1)',
+            border: '2px solid #f44336',
+            borderRadius: '12px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+              <strong style={{ fontSize: '1.125rem', color: '#f44336' }}>Wrong Network Detected</strong>
+            </div>
+            <p style={{ marginBottom: '0.75rem', fontSize: '0.95rem' }}>
+              You're connected to <strong>{chain?.name || 'Unknown Network'}</strong> (Chain ID: {chain?.id}).
+              <br />
+              This app requires <strong>{expectedNetworkName}</strong>.
+            </p>
+            <p style={{ marginBottom: '0.75rem', fontSize: '0.95rem' }}>
+              Please disconnect and reconnect with the correct network selected in your wallet.
+            </p>
+            <button onClick={handleDisconnect} className="btn-primary" style={{ fontSize: '0.95rem', padding: '0.75rem 1.5rem' }}>
+              Disconnect Wallet
+            </button>
+          </div>
+        )}
+
         {/* FHEVM Status */}
-        {isConnected && (
+        {isConnected && !isWrongNetwork && (
           <section className="section">
             <h2>2. FHEVM Initialization</h2>
             <div className="status-badge">
@@ -147,7 +179,7 @@ export default function Home() {
         )}
 
         {/* Counter Demo */}
-        {isConnected && isReady && (
+        {isConnected && !isWrongNetwork && isReady && (
           <section className="section">
             <h2>3. Encrypted Counter Demo</h2>
             <p style={{ marginBottom: '1.5rem', fontSize: '0.95rem' }}>

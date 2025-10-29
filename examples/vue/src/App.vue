@@ -15,6 +15,20 @@ const { open } = useVueDappModal();
 // FHEVM client from plugin
 const { status, isReady, network } = useFhevm();
 
+// Network validation
+const expectedChainId = NETWORK_MODE === 'localhost' ? 31337 : 11155111; // Localhost: 31337, Sepolia: 11155111
+const isWrongNetwork = computed(() => {
+  // Debug logging
+  console.log('Vue Network Debug:', {
+    isConnected: isConnected.value,
+    wallet: wallet,
+    chainId: wallet.chainId,
+    expectedChainId
+  });
+  return isConnected.value && wallet.chainId && wallet.chainId !== expectedChainId;
+});
+const expectedNetworkName = NETWORK_MODE === 'localhost' ? 'Localhost (31337)' : 'Sepolia Testnet';
+  
 // Contract address based on network
 const contractAddress = NETWORK_MODE === 'localhost' ? LOCALHOST_COUNTER_ADDRESS : SEPOLIA_COUNTER_ADDRESS;
 
@@ -156,8 +170,36 @@ const handleConnectClick = () => {
         </div>
       </section>
 
+      <!-- Wrong Network Warning -->
+      <div 
+        v-if="isWrongNetwork"
+        style="
+          padding: 1rem;
+          margin-bottom: 1.5rem;
+          background-color: rgba(244, 67, 54, 0.1);
+          border: 2px solid #f44336;
+          border-radius: 12px;
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem">
+          <span style="font-size: 1.5rem">⚠️</span>
+          <strong style="font-size: 1.125rem; color: #f44336">Wrong Network Detected</strong>
+        </div>
+        <p style="margin-bottom: 0.75rem; font-size: 0.95rem">
+          You're connected to <strong>{{ wallet.chainId === 1 ? 'Ethereum Mainnet' : `Chain ID ${wallet.chainId}` }}</strong>.
+          <br />
+          This app requires <strong>{{ expectedNetworkName }}</strong>.
+        </p>
+        <p style="margin-bottom: 0.75rem; font-size: 0.95rem">
+          Please disconnect and reconnect with the correct network selected in your wallet.
+        </p>
+        <button @click="handleConnectClick" class="btn-primary" style="font-size: 0.95rem; padding: 0.75rem 1.5rem">
+          Disconnect Wallet
+        </button>
+      </div>
+  
       <!-- FHEVM Status -->
-      <section v-if="isConnected" class="section">
+      <section v-if="isConnected && !isWrongNetwork" class="section">
         <h2>2. FHEVM Initialization</h2>
         <div class="status-badge">
           <span :class="isReady ? 'status-ready' : 'status-loading'">
@@ -167,7 +209,7 @@ const handleConnectClick = () => {
       </section>
 
       <!-- Counter Demo -->
-      <section v-if="isConnected && isReady" class="section">
+      <section v-if="isConnected && !isWrongNetwork && isReady" class="section">
         <h2>3. Encrypted Counter Demo</h2>
         <p style="margin-bottom: 1.5rem; font-size: 0.95rem">
           Interact with encrypted data on the blockchain using FHE.
