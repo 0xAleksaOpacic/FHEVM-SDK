@@ -2,8 +2,6 @@
 
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { useState } from 'react';
-import Image from 'next/image';
-import logo from './assets/logo.svg';
 import { useFhevm, useFhevmEncrypt, useFhevmPublicDecrypt, useFhevmUserDecrypt, FhevmClientStatus, FhevmCacheType } from '@fhevm/react-sdk';
 import {
   sendIncrementTx,
@@ -37,8 +35,13 @@ export default function Home() {
 
   const handleIncrement = async (type: 'user' | 'public') => {
     if (!client || !address) return;
+    
+    // Set loading state first and force UI update
     setLoading(`increment-${type}`);
-    setTxStatus('Encrypting value...');
+    setTxStatus('⏳ Encrypting value...');
+    
+    // Small delay to ensure UI updates before encryption starts
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     try {
       // Create encrypted input
@@ -46,7 +49,7 @@ export default function Home() {
       input.add32(1); // Increment by 1
       const encrypted = await input.encrypt();
 
-      setTxStatus('Sending transaction...');
+      setTxStatus('⏳ Sending transaction...');
       await sendIncrementTx(encrypted.handles[0], encrypted.inputProof, type, mode);
 
       setTxStatus(`✓ ${type === 'user' ? 'User' : 'Public'} counter incremented successfully!`);
@@ -63,6 +66,7 @@ export default function Home() {
   const handleDecryptUser = async () => {
     if (!client || !address) return;
     setLoading('decrypt-user');
+    setUserValue('⏳ Decrypting...');
 
     try {
       const handle = await getUserCounterHandle(mode);
@@ -70,7 +74,7 @@ export default function Home() {
       setUserValue(value.toString());
     } catch (err) {
       console.error('Decrypt error:', err);
-      setUserValue('Error');
+      setUserValue('✗ Error');
     } finally {
       setLoading('');
     }
@@ -79,6 +83,7 @@ export default function Home() {
   const handleDecryptPublic = async () => {
     if (!client) return;
     setLoading('decrypt-public');
+    setPublicValue('⏳ Decrypting...');
 
     try {
       const handle = await getPublicCounterHandle(mode);
@@ -86,7 +91,7 @@ export default function Home() {
       setPublicValue(value.toString());
     } catch (err) {
       console.error('Decrypt error:', err);
-      setPublicValue('Error');
+      setPublicValue('✗ Error');
     } finally {
       setLoading('');
     }
@@ -94,10 +99,6 @@ export default function Home() {
 
   return (
     <main className="container">
-      <div className="header">
-        <Image src={logo} alt="Zama Logo" className="logo" priority />
-      </div>
-      
       <div className="card">
         <h1 style={{ textAlign: 'center' }}>FHEVM SDK Next.js Demo</h1>
         <p className="subtitle">

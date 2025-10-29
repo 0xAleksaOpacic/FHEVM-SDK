@@ -17,19 +17,6 @@ body {
   margin: 0 auto;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 3rem;
-}
-
-.logo {
-  width: 120px;
-  height: auto;
-}
-
 .card {
   background: rgba(255, 255, 255, 0.9);
   border-radius: 24px;

@@ -4,7 +4,6 @@ import { BrowserWalletConnector, useVueDapp } from '@vue-dapp/core';
 import { VueDappModal, useVueDappModal } from '@vue-dapp/modal';
 import { useFhevm, useFhevmEncrypt, useFhevmPublicDecrypt, useFhevmUserDecrypt, FhevmClientStatus, FhevmCacheType } from '@fhevm/vue-sdk';
 import '@vue-dapp/modal/dist/style.css';
-import logo from './assets/logo.svg';
 import { NETWORK_MODE } from './config';
 import { LOCALHOST_COUNTER_ADDRESS } from './config/localhost';
 import { SEPOLIA_COUNTER_ADDRESS } from './config/sepolia';
@@ -48,8 +47,12 @@ const statusText = computed(() => {
 // Handlers
 const handleIncrement = async (type: 'user' | 'public') => {
   try {
+    // Set loading state first and force UI update
     loading.value = `increment-${type}`;
-    txStatus.value = '';
+    txStatus.value = '⏳ Encrypting value...';
+    
+    // Small delay to ensure UI updates before encryption starts
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     if (!wallet.address) {
       throw new Error('Wallet not connected');
@@ -64,9 +67,11 @@ const handleIncrement = async (type: 'user' | 'public') => {
     await sendIncrementTx(encrypted.handles[0], encrypted.inputProof, type, NETWORK_MODE);
 
     txStatus.value = `✓ ${type === 'public' ? 'Public' : 'User'} counter incremented!`;
+    setTimeout(() => { txStatus.value = ''; }, 3000);
   } catch (error) {
     console.error('Increment error:', error);
     txStatus.value = `✗ Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    setTimeout(() => { txStatus.value = ''; }, 3000);
   } finally {
     loading.value = '';
   }
@@ -75,12 +80,13 @@ const handleIncrement = async (type: 'user' | 'public') => {
 const handleDecryptUser = async () => {
   try {
     loading.value = 'decrypt-user';
+    userValue.value = '⏳ Decrypting...';
     const handle = await getUserCounterHandle(NETWORK_MODE);
     const decryptedValue = await userDecrypt(handle, wallet);
     userValue.value = decryptedValue.toString();
   } catch (error) {
     console.error('Decrypt user error:', error);
-    userValue.value = 'Error';
+    userValue.value = '✗ Error';
   } finally {
     loading.value = '';
   }
@@ -89,12 +95,13 @@ const handleDecryptUser = async () => {
 const handleDecryptPublic = async () => {
   try {
     loading.value = 'decrypt-public';
+    publicValue.value = '⏳ Decrypting...';
     const handle = await getPublicCounterHandle(NETWORK_MODE);
     const decryptedValue = await publicDecrypt(handle);
     publicValue.value = decryptedValue.toString();
   } catch (error) {
     console.error('Decrypt public error:', error);
-    publicValue.value = 'Error';
+    publicValue.value = '✗ Error';
   } finally {
     loading.value = '';
   }
@@ -119,10 +126,6 @@ const handleConnectClick = () => {
 
 <template>
   <main class="container">
-    <div class="header">
-      <img :src="logo" alt="Zama Logo" class="logo" />
-    </div>
-    
     <div class="card">
       <h1 style="text-align: center">FHEVM SDK Vue Demo</h1>
       <p class="subtitle">
