@@ -6,11 +6,10 @@
 
 * [@fhevm/sdk](packages/fhevm-sdk/README.md)
   * [Usage Examples](packages/fhevm-sdk/docs/usage.md)
-  * Advanced
-    * [Configuration](packages/fhevm-sdk/docs/configuration.md)
-    * [Caching](packages/fhevm-sdk/docs/caching.md)
-    * [Request Batching](packages/fhevm-sdk/docs/batching.md)
-    * [SSR Compatibility](packages/fhevm-sdk/docs/ssr-compatibility.md)
+  * [Configuration](packages/fhevm-sdk/docs/configuration.md)
+  * [Caching](packages/fhevm-sdk/docs/caching.md)
+  * [Request Batching](packages/fhevm-sdk/docs/batching.md)
+  * [SSR Compatibility](packages/fhevm-sdk/docs/ssr-compatibility.md)
 
 * [@fhevm/react-sdk](packages/fhevm-react-sdk/README.md)
   * [FhevmProvider](packages/fhevm-react-sdk/docs/provider.md)
