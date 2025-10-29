@@ -127,9 +127,9 @@ See `.env.example` files for optional overrides (custom RPC URL, custom contract
 
 Switch MetaMask to Sepolia and ensure you have test ETH. See [MetaMask Sepolia Setup](./docs/metamask-sepolia.md) for detailed instructions.
 
-#### Optional: Deploy Your Own Contract
+#### 3. Deploy Your Own Contract (Optional)
 
-// TODO
+To deploy your own `FHECounter` contract instead of using the pre-deployed one, see [Deploy to Sepolia Guide](./docs/deploy-sepolia.md).
 
 ### Running Examples
 

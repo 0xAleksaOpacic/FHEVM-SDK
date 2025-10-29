@@ -31,6 +31,7 @@
 * [Next.js](examples/nextjs/README.md)
 * [Vue 3](examples/vue/README.md)
 * [Node.js CLI](examples/nodejs/README.md)
+* [Deploy FHECounter to Sepolia](docs/deploy-sepolia.md)
 
 ## Wallet Setup
 

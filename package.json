@@ -21,6 +21,8 @@
     "vue:build": "pnpm --filter ./examples/vue build",
 
     "chain": "cd packages/hardhat && npx hardhat node",
+    "deploy:sepolia": "pnpm --filter ./packages/hardhat deploy:sepolia",
+    "deployer:info": "cd packages/hardhat && npx hardhat run scripts/show-deployer.ts --network sepolia",
     "nextjs-example": "pnpm --filter ./examples/nextjs dev",
     "vue-example": "pnpm --filter ./examples/vue build && pnpm --filter ./examples/vue preview",
     "nodejs-example": "pnpm --filter ./examples/nodejs start"
