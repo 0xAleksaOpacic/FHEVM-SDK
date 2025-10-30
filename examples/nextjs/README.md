@@ -6,6 +6,11 @@ This example uses [wagmi](https://wagmi.sh) for wallet connections and [ethers](
 
 **🌐 Live Demo**: [fhevm-sdk-nextjs-example.vercel.app](https://fhevm-sdk-nextjs-example.vercel.app/)
 
+## 🎥 6‑minute overview
+
+[Watch the demo on Google Drive](https://drive.google.com/file/d/1DGKS88R7bqAX3uShnLN54GeUbyxh4ZnP/preview)
+
+
 ## 🚀 Running the example
 
 > **Localhost works out of the box**
