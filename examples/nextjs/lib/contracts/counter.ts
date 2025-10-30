@@ -24,12 +24,13 @@ export async function sendIncrementTx(
   handle: Uint8Array,
   inputProof: Uint8Array,
   counterType: 'user' | 'public',
-  mode: NetworkMode
+  mode: NetworkMode,
+  walletClient: any
 ) {
   const config = getCounterConfig(mode);
 
-  // Get signer and contract
-  const signer = await getEthersSigner();
+  // Get signer and contract using Wagmi's wallet client
+  const signer = await getEthersSigner(walletClient);
   const contract = await getEthersContract(
     config.address,
     config.abi,

@@ -7,11 +7,12 @@ export function handleToHex(handle: any): string {
 }
 
 /**
- * Gets an ethers signer from the browser's Ethereum provider
+ * Gets an ethers signer from Wagmi's wallet client
+ * This ensures we use the wallet the user selected in Wagmi, not window.ethereum
  */
-export async function getEthersSigner() {
+export async function getEthersSigner(walletClient: any) {
   const { BrowserProvider } = await import('ethers');
-  const provider = new BrowserProvider(window.ethereum);
+  const provider = new BrowserProvider(walletClient);
   return await provider.getSigner();
 }
 

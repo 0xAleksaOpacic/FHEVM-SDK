@@ -1,6 +1,6 @@
 'use client';
 
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useWalletClient } from 'wagmi';
 import { useState } from 'react';
 import { useFhevm, useFhevmEncrypt, useFhevmPublicDecrypt, useFhevmUserDecrypt, FhevmClientStatus, FhevmCacheType } from '@fhevm/react-sdk';
 import {
@@ -15,6 +15,7 @@ export default function Home() {
   const { address, isConnected, chain } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
+  const { data: walletClient } = useWalletClient();
   const { client, status, isReady, network: mode } = useFhevm();
 
   const contractAddress = mode === 'localhost' ? LOCALHOST_COUNTER_ADDRESS : SEPOLIA_COUNTER_ADDRESS;
@@ -26,6 +27,7 @@ export default function Home() {
   const [publicValue, setPublicValue] = useState<string>('-');
   const [loading, setLoading] = useState<string>('');
   const [txStatus, setTxStatus] = useState<string>('');
+  const [showWalletModal, setShowWalletModal] = useState<boolean>(false);
 
   // Network validation
   const expectedChainId = mode === 'localhost' ? 31337 : 11155111; // Localhost: 31337, Sepolia: 11155111
@@ -39,7 +41,7 @@ export default function Home() {
   };
 
   const handleIncrement = async (type: 'user' | 'public') => {
-    if (!client || !address) return;
+    if (!client || !address || !walletClient) return;
     
     // Set loading state first and force UI update
     setLoading(`increment-${type}`);
@@ -55,7 +57,7 @@ export default function Home() {
       const encrypted = await input.encrypt();
 
       setTxStatus('⏳ Sending transaction...');
-      await sendIncrementTx(encrypted.handles[0], encrypted.inputProof, type, mode);
+      await sendIncrementTx(encrypted.handles[0], encrypted.inputProof, type, mode, walletClient);
 
       setTxStatus(`✓ ${type === 'user' ? 'User' : 'Public'} counter incremented successfully!`);
       setTimeout(() => setTxStatus(''), 3000);
@@ -117,12 +119,99 @@ export default function Home() {
         <section className="section">
           <h2>1. Connect Wallet</h2>
           {!isConnected ? (
-            <button 
-              onClick={() => connect({ connector: connectors[0] })}
-              className="btn-primary"
-            >
-              Connect Wallet
-            </button>
+            <>
+              <button 
+                onClick={() => setShowWalletModal(true)}
+                className="btn-primary"
+              >
+                Connect Wallet
+              </button>
+
+              {/* Wallet Selection Modal */}
+              {showWalletModal && (
+                <div style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 1000,
+                }} onClick={() => setShowWalletModal(false)}>
+                  <div style={{
+                    backgroundColor: '#1d1d1b',
+                    padding: '2rem',
+                    borderRadius: '12px',
+                    minWidth: '300px',
+                    maxWidth: '400px',
+                  }} onClick={(e) => e.stopPropagation()}>
+                    <h3 style={{ marginTop: 0, marginBottom: '1.5rem', textAlign: 'center', color: '#ffffff' }}>
+                      Select Wallet
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {connectors.map((connector) => (
+                        <button
+                          key={connector.id}
+                          onClick={() => {
+                            connect({ connector });
+                            setShowWalletModal(false);
+                          }}
+                          style={{
+                            padding: '1rem',
+                            backgroundColor: '#2d2d2b',
+                            border: '1px solid #ffd209',
+                            borderRadius: '8px',
+                            color: '#ffd209',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            fontWeight: 500,
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#ffd209';
+                            e.currentTarget.style.color = '#1d1d1b';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#2d2d2b';
+                            e.currentTarget.style.color = '#ffd209';
+                          }}
+                        >
+                          {connector.name}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => setShowWalletModal(false)}
+                      style={{
+                        marginTop: '1rem',
+                        width: '100%',
+                        padding: '0.75rem',
+                        backgroundColor: 'transparent',
+                        border: '1px solid #ffd209',
+                        borderRadius: '8px',
+                        color: '#ffd209',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#ffd209';
+                        e.currentTarget.style.color = '#1d1d1b';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = '#ffd209';
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="wallet-info">
               <div style={{ flex: 1 }}>

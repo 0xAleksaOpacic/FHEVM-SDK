@@ -3,7 +3,7 @@
 import { WagmiProvider, createConfig, http } from 'wagmi';
 import { mainnet, sepolia, localhost } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { injected } from 'wagmi/connectors';
+import { injected, metaMask, coinbaseWallet } from 'wagmi/connectors';
 import { ReactNode } from 'react';
 import { FhevmProvider } from '@fhevm/react-sdk';
 import { NETWORK_MODE } from '@/config';
@@ -13,7 +13,11 @@ import { SEPOLIA_RPC_URL } from '@/config/sepolia';
 // Wagmi config - include multiple chains so we can detect which network user is on
 const config = createConfig({
   chains: [sepolia, localhost, mainnet],
-  connectors: [injected()],
+  connectors: [
+    metaMask(),
+    coinbaseWallet({ appName: 'FHEVM SDK Example' }),
+    injected(), // Fallback for other wallets (Rainbow, Rabby, etc.)
+  ],
   transports: {
     [sepolia.id]: http(),
     [localhost.id]: http(),
