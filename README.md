@@ -55,8 +55,8 @@ fhevm-sdk/
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd fhevm-sdk
+git clone git@github.com:0xAleksaOpacic/FHEVM-SDK.git
+cd FHEVM-SDK
 
 # Initialize Hardhat submodule (local network and contracts)
 git submodule update --init --recursive
